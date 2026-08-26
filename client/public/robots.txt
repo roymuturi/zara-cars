@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /dealer
+Disallow: /404
+
+Sitemap: https://zara-cars.manus.space/sitemap.xml
