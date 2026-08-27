@@ -60,8 +60,8 @@ img { display: block; max-width: 100%; }
 .text-link:hover { color: var(--red); gap: 12px; }
 .eyebrow, .section-kicker { margin: 0; color: var(--red); font-size: 10px; font-weight: 800; letter-spacing: .16em; line-height: 1.4; text-transform: uppercase; }
 
-.hero-section { position: relative; min-height: 700px; display: grid; grid-template-columns: minmax(0, .85fr) minmax(440px, 1.15fr); gap: 44px; align-items: center; padding: 148px max(24px, calc((100vw - 1220px) / 2)) 100px; background: linear-gradient(118deg, #e3e7e5 0%, #eef2f0 50%, #d6dee1 100%); overflow: hidden; }
-.dark .hero-section { background: linear-gradient(118deg, #0b1727 0%, #12283b 52%, #182c3a 100%); }
+.hero-section { position: relative; min-height: 700px; display: grid; grid-template-columns: minmax(0, .85fr) minmax(440px, 1.15fr); gap: 44px; align-items: center; padding: 148px max(24px, calc((100vw - 1220px) / 2)) 100px; background: linear-gradient(118deg, #dce4e0 0%, #e8eeeb 28%, #f2f5f3 52%, #e3e8e5 78%, #d6deda 100%); overflow: hidden; }
+.dark .hero-section { background: linear-gradient(118deg, #0b1727 0%, #12283b 28%, #1a3245 52%, #132c3d 78%, #182c3a 100%); }
 .hero-copy { position: relative; z-index: 2; max-width: 510px; }
 .hero-kicker { width: fit-content; display: inline-flex; align-items: center; gap: 8px; margin-bottom: 24px; padding: 9px 12px; border: 1px solid rgba(255,255,255,.68); border-radius: 999px; background: rgba(255,255,255,.42); color: var(--red); font-size: 10px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; backdrop-filter: blur(18px); }
 .hero-copy h1, .page-hero h1 { margin: 0; color: var(--ink); font-family: 'Sora', sans-serif; font-size: clamp(46px, 6.2vw, 80px); font-weight: 800; letter-spacing: -.075em; line-height: .98; }
@@ -498,23 +498,6 @@ img { display: block; max-width: 100%; }
   background: linear-gradient(90deg, rgba(255,255,255,.22), transparent 38%, rgba(217,47,61,.07) 86%, transparent);
   opacity: .72;
 }
-.site-header::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -58px;
-  z-index: 1;
-  height: 64px;
-  pointer-events: none;
-  background: linear-gradient(to bottom, rgba(231,240,244,.42), rgba(231,240,244,0));
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, rgba(0,0,0,.70) 34%, transparent 100%);
-  mask-image: linear-gradient(to bottom, #000 0%, rgba(0,0,0,.70) 34%, transparent 100%);
-}
-.site-header.site-header-dark::after,
-.dark .site-header.site-header-dark::after {
-  background: linear-gradient(to bottom, rgba(8,25,45,.54), rgba(8,25,45,0));
-}
 .site-header .header-inner,
 .site-header .mobile-nav { position: relative; z-index: 2; }
 .site-header .icon-button,
@@ -646,3 +629,193 @@ img { display: block; max-width: 100%; }
 }
 .dark .make-rail-hint { color: #a7b4c1; }
 .dark .make-rail-hint svg { color: #ff5961; }
+
+/* ===== Zara Cars polish pass (appended) ===== */
+/* Header gels into the page: no bottom line, no floating drop shadow,
+   frosted background that matches the dealer light-mode surfaces. */
+.site-header {
+  background: rgba(255, 255, 255, .46);
+  border-bottom: 0 !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .72);
+  backdrop-filter: blur(26px) saturate(1.25);
+  -webkit-backdrop-filter: blur(26px) saturate(1.25);
+}
+.site-header .header-inner { padding: 0 14px; }
+.site-header .header-inner { min-height: 84px; }
+.site-header .brand-lockup { position: static; left: 0; transform: none; max-width: none; width: auto; gap: 14px; }
+.site-header .brand-mark { width: 64px; height: 64px; border-radius: 13px; }
+.site-header .brand-wordmark { font-size: 30px; letter-spacing: -.05em; line-height: 1; }
+.site-header .header-actions { margin-left: auto; min-width: 56px; }
+.site-header .desktop-nav { gap: 28px; }
+.site-header .desktop-nav a { color: var(--ink-soft); font-size: 13px; font-weight: 700; letter-spacing: .02em; }
+.site-header .desktop-nav a:hover { color: var(--red); }
+.site-header.site-header-dark { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .11); }
+.frame-dark .site-header .desktop-nav a { color: rgba(255, 255, 255, .74); }
+
+/* Dark header (toggled dark mode) stays frosted without the line. */
+.dark .site-header:not(.site-header-dark) { box-shadow: inset 0 1px 0 rgba(192, 220, 232, .18); }
+
+/* Footer brand — larger company name and logo. */
+.site-footer .brand-lockup { gap: 18px; }
+.site-footer .brand-mark { width: 76px; height: 76px; border-radius: 15px; }
+.site-footer .brand-wordmark { font-size: 36px; letter-spacing: -.045em; }
+.site-footer .footer-inner > div:first-child > p { font-size: 15px; }
+.site-footer .footer-links a { font-size: 14px; }
+.site-footer .footer-dealer-block p,
+.site-footer .footer-contact span { font-size: 13px; }
+.site-footer .footer-contact a { font-size: 14px; }
+.site-footer .footer-bottom span { font-size: 13px; }
+
+/* Landing page: no header bar, brand + theme toggle sit at the hero top. */
+.no-header .original-hero-inner { padding: 70px 0 105px; }
+.landing-chrome {
+  position: absolute; top: 22px; left: 0; right: 0; z-index: 3;
+  width: min(1220px, calc(100% - 48px)); margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.landing-chrome .brand-mark { width: 60px; height: 60px; border-radius: 12px; }
+.landing-chrome .brand-wordmark { font-size: 28px; }
+.landing-chrome .brand-wordmark strong { color: var(--ink); }
+.landing-chrome .brand-wordmark em { color: #ff5961; }
+
+/* Larger, readable typography (public surfaces). */
+.section-kicker, .eyebrow { font-size: 12px; }
+.status-pill, .status-pill.small { font-size: 12px; }
+.metric-strip .metric-kicker, .metric-strip small { font-size: 11px; }
+.metric-strip strong { font-size: 22px; }
+.metric-strip { gap: 8px; }
+.vehicle-card-body .eyebrow { font-size: 12px; }
+.vehicle-card-body h3 { font-size: 22px; }
+.vehicle-card-body p { font-size: 13px; }
+.vehicle-card-body .body-tag { font-size: 12px; }
+.vehicle-meta span { font-size: 12px; }
+.vehicle-price-row small, .vehicle-price-row span { font-size: 12px; }
+.vehicle-price-row strong { font-size: 19px; }
+.inventory-filters label { font-size: 12px; }
+.sort-wrap { font-size: 13px; }
+.inventory-search input { font-size: 14px; }
+.inventory-results-head { font-size: 13px; }
+.stock-table-head { font-size: 10px; }
+.stock-table-row { font-size: 11px; }
+.original-section-heading h2 { font-size: clamp(36px, 4.8vw, 54px); }
+.original-hero h1 { font-size: clamp(58px, 7vw, 94px); }
+.original-hero-copy > p { font-size: 17px; line-height: 1.72; }
+.original-stat-strip strong { font-size: 20px; }
+.original-stat-strip small { font-size: 12px; }
+.original-section-heading .text-link { font-size: 12px; }
+
+/* Make rail — bigger marks. */
+.make-badge { gap: 10px; }
+.make-badge b { width: 36px; height: 36px; font-size: 11px; }
+.make-badge small { font-size: 12px; }
+.make-badge-svg { width: 22px; height: 22px; }
+.make-badge.with-label .make-badge-svg { width: 24px; height: 24px; }
+.make-badge.with-label .make-badge-image { width: 32px; height: 32px; }
+.make-badge-logo { width: 32px; height: 32px; flex: 0 0 auto; border-radius: 8px; object-fit: contain; }
+.make-badge.with-label .make-badge-logo { width: 34px; height: 34px; }
+.make-logo-button { padding: 9px 13px; gap: 9px; }
+
+/* Mobile nav: show the link panel, hide desktop nav, right-size brand. */
+@media (max-width: 760px) {
+  .desktop-nav { display: none; }
+  .mobile-nav { display: grid; gap: 6px; }
+  .mobile-menu-button { display: grid; }
+  .site-header .brand-mark { width: 48px; height: 48px; }
+  .site-header .brand-wordmark { font-size: 22px; }
+  .site-footer .brand-mark { width: 64px; height: 64px; }
+  .site-footer .brand-wordmark { font-size: 30px; }
+  .no-header .original-hero-inner { padding: 64px 16px 90px; }
+  .landing-chrome { top: 18px; width: calc(100% - 32px); }
+  .landing-chrome .brand-mark { width: 52px; height: 52px; }
+  .landing-chrome .brand-wordmark { font-size: 24px; }
+  .hero-kinetic-lockup { font-size: clamp(2.8rem, 14vw, 4.2rem); }
+  .vehicle-card-body h3 { font-size: 20px; }
+  .vehicle-price-row strong { font-size: 17px; }
+  .make-badge.with-label .make-badge-logo { width: 30px; height: 30px; }
+  .make-logo-button { padding: 8px 11px; }
+}
+
+/* ===== Zara Cars polish pass =====
+   Gelled header (no bottom line), enlarged brand marks, larger readable
+   typography, and an enlarged make rail — all layered last so they win. */
+.site-header {
+  background: rgba(255, 255, 255, .42);
+  border-bottom: 0 !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .70);
+  backdrop-filter: blur(24px) saturate(1.25);
+}
+.site-header .header-inner { padding: 0 10px; }
+.site-header .brand-lockup { position: static; left: 0; transform: none; max-width: none; width: auto; gap: 14px; }
+.site-header .brand-mark { width: 64px; height: 64px; border-radius: 13px; }
+.site-header .brand-wordmark { font-size: 30px; letter-spacing: -.05em; }
+.site-header .brand-wordmark strong { color: var(--ink); }
+.site-header .brand-wordmark em { color: var(--red); }
+.site-header .header-actions { min-width: 56px; }
+.site-header .desktop-nav a { font-size: 13px; font-weight: 700; }
+.site-header .desktop-nav a:hover { color: var(--red); }
+.site-header.site-header-dark { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .11); }
+
+/* Footer brand — larger company name and logo. */
+.site-footer .brand-lockup { gap: 16px; }
+.site-footer .brand-mark { width: 72px; height: 72px; border-radius: 14px; }
+.site-footer .brand-wordmark { font-size: 36px; letter-spacing: -.04em; }
+.site-footer .footer-inner > div:first-child > p { font-size: 15px; }
+
+/* Landing page has no header; let the hero start at the very top. */
+.no-header .original-hero-inner { padding: 70px 0 105px; }
+.landing-chrome {
+  position: absolute; top: 22px; left: 0; right: 0; z-index: 3;
+  width: min(1220px, calc(100% - 48px)); margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.landing-chrome .brand-mark { width: 60px; height: 60px; border-radius: 12px; }
+.landing-chrome .brand-wordmark { font-size: 30px; }
+.landing-chrome .brand-wordmark strong { color: var(--ink); }
+.landing-chrome .brand-wordmark em { color: #ff5961; }
+
+/* Larger, readable typography across public surfaces. */
+.section-kicker, .eyebrow { font-size: 12px; }
+.status-pill, .status-pill.small { font-size: 12px; }
+.vehicle-card-body .eyebrow { font-size: 12px; }
+.vehicle-card-body h3 { font-size: 22px; }
+.vehicle-card-body p { font-size: 13px; }
+.vehicle-card-body .body-tag { font-size: 12px; }
+.vehicle-meta span { font-size: 12px; }
+.vehicle-price-row small, .vehicle-price-row span { font-size: 12px; }
+.vehicle-price-row strong { font-size: 18px; }
+.stock-capsule i, .stock-capsule small { font-size: 10px; }
+.feature-list span { font-size: 11px; }
+.inventory-filters label { font-size: 12px; }
+.sort-wrap { font-size: 13px; }
+.inventory-search input { font-size: 14px; }
+.inventory-results-head { font-size: 13px; }
+.stock-table-head { font-size: 10px; }
+.stock-table-row { font-size: 11px; }
+.metric-strip strong { font-size: 22px; }
+.metric-strip small { font-size: 11px; }
+.original-section-heading h2 { font-size: clamp(36px, 4.8vw, 54px); }
+.original-hero h1 { font-size: clamp(58px, 7vw, 94px); }
+.original-stat-strip strong { font-size: 20px; }
+.original-stat-strip small { font-size: 12px; }
+
+/* Make rail — bigger, clearer company marks. */
+.make-badge { gap: 10px; }
+.make-badge b { width: 36px; height: 36px; font-size: 11px; }
+.make-badge small { font-size: 12px; }
+.make-badge-svg { width: 22px; height: 22px; }
+.make-badge.with-label .make-badge-svg { width: 24px; height: 24px; }
+.make-badge.with-label .make-badge-image { width: 32px; height: 32px; }
+.make-logo-button { padding: 8px 12px; gap: 8px; }
+.make-rail-all { font-size: 13px; font-weight: 900; }
+
+@media (max-width: 760px) {
+  .site-header .brand-mark { width: 48px; height: 48px; }
+  .site-header .brand-wordmark { font-size: 24px; }
+  .site-footer .brand-mark { width: 64px; height: 64px; }
+  .site-footer .brand-wordmark { font-size: 30px; }
+  .no-header .original-hero-inner { padding: 64px 16px 90px; }
+  .landing-chrome { top: 18px; width: calc(100% - 32px); }
+  .landing-chrome .brand-mark { width: 52px; height: 52px; }
+  .landing-chrome .brand-wordmark { font-size: 26px; }
+  .hero-kinetic-lockup { font-size: clamp(2.8rem, 14vw, 4.2rem); }
+}

@@ -15,9 +15,17 @@ export function ThemeToggle() {
   return <button className="icon-button" onClick={toggleTheme} aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`} title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}>{theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}</button>;
 }
 
+const navLinks = [
+  { label: "Browse stock", href: "/inventory" },
+  { label: "Finance", href: "/financing" },
+  { label: "Trade-in", href: "/trade-in" },
+  { label: "About", href: "/about" },
+  { label: "Contact", href: "/contact" },
+];
+
 export function SiteHeader({ dark = false }: { dark?: boolean }) {
   const [open, setOpen] = useState(false);
-  return <header className={`site-header ${dark ? "site-header-dark" : ""}`}><div className="header-inner"><Logo /><div className="header-actions"><ThemeToggle /><button className="mobile-menu-button" onClick={() => setOpen(!open)} aria-label="Toggle navigation">{open ? <X size={19} /> : <Menu size={19} />}</button></div></div>{open && <div className="mobile-nav" /> }</header>;
+  return <header className={`site-header ${dark ? "site-header-dark" : ""}`}><div className="header-inner"><Logo /><nav className="desktop-nav" aria-label="Main navigation">{navLinks.map(link => <Link key={link.href} href={link.href}>{link.label}</Link>)}</nav><div className="header-actions"><ThemeToggle /><button className="mobile-menu-button" onClick={() => setOpen(!open)} aria-label="Toggle navigation">{open ? <X size={19} /> : <Menu size={19} />}</button></div></div>{open && <nav className="mobile-nav" aria-label="Main navigation">{navLinks.map(link => <Link key={link.href} href={link.href} onClick={() => setOpen(false)}>{link.label}</Link>)}</nav>}</header>;
 }
 
 const officialBrandIcons: Record<string, typeof siToyota> = {
@@ -39,17 +47,12 @@ const officialBrandIcons: Record<string, typeof siToyota> = {
   Volvo: siVolvo,
   Audi: siAudi,
 };
-const fallbackBrandLogos: Record<string, string> = {
-  Isuzu: "/images/isuzu-logo.png",
-  Mercedes: "/images/mercedes-logo.jpg",
-  "Land Rover": "/images/land-rover-logo.png",
-};
 
 export function MakeBadge({ make, showLabel = true }: { make: string; showLabel?: boolean }) {
   const meta = makeMeta[make] ?? { short: make.slice(0, 3).toUpperCase(), color: "#0b1f3a", light: "#e8eef5" };
   const icon = officialBrandIcons[make];
-  const fallback = fallbackBrandLogos[make];
-  return <span className={`make-badge ${showLabel ? "with-label" : ""}`} style={{ "--make-color": meta.color, "--make-light": meta.light } as React.CSSProperties}>{icon ? <svg className="make-badge-svg" viewBox="0 0 24 24" role="img" aria-label={`${make} logo`}><path d={icon.path} /></svg> : fallback ? <img className="make-badge-image" src={fallback} alt={`${make} logo`} /> : <b>{meta.short}</b>}{showLabel && <small>{make}</small>}</span>;
+  const logo = (meta as { logo?: string }).logo;
+  return <span className={`make-badge ${showLabel ? "with-label" : ""}`} style={{ "--make-color": meta.color, "--make-light": meta.light } as React.CSSProperties}>{icon ? <svg className="make-badge-svg" viewBox="0 0 24 24" role="img" aria-label={`${make} logo`}><path d={icon.path} /></svg> : logo ? <img className="make-badge-logo" src={logo} alt={`${make} logo`} loading="lazy" /> : <b>{meta.short}</b>}{showLabel && <small>{make}</small>}</span>;
 }
 
 export function StatusPill({ status }: { status: Vehicle["status"] }) {
@@ -69,6 +72,6 @@ export function AmbientBackground() {
   return <div className="ambient-background" aria-hidden="true"><div className="ambient-orbit orbit-one" /><div className="ambient-orbit orbit-two" /><div className="ambient-orbit orbit-three" /><div className="ambient-glow glow-red" /><div className="ambient-glow glow-blue" /></div>;
 }
 
-export function PageFrame({ children, dark = false }: { children: React.ReactNode; dark?: boolean }) {
-  return <div className={`app-frame ${dark ? "frame-dark" : ""}`}><AmbientBackground /><SiteHeader dark={dark} /><main className="page-content">{children}</main><Footer /></div>;
+export function PageFrame({ children, dark = false, noHeader = false }: { children: React.ReactNode; dark?: boolean; noHeader?: boolean }) {
+  return <div className={`app-frame ${dark ? "frame-dark" : ""} ${noHeader ? "no-header" : ""}`}><AmbientBackground />{!noHeader && <SiteHeader dark={dark} />}<main className="page-content">{children}</main><Footer /></div>;
 }

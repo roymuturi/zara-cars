@@ -50,11 +50,11 @@ export default function SEO() {
     setProperty("og:type", vehicle ? "product" : "website");
     setProperty("og:url", canonical);
     setProperty("og:site_name", "Zara Cars");
-    setProperty("og:image", vehicle?.image ?? `${siteOrigin}/manus-storage/zara-cars-mark_cffd7b67.png`);
+    setProperty("og:image", vehicle?.image ?? `${siteOrigin}/Logo.jpg`);
     setMeta("twitter:card", "summary_large_image");
     setProperty("twitter:title", meta.title);
     setProperty("twitter:description", meta.description);
-    const structuredData = vehicle ? { "@context": "https://schema.org", "@type": "Vehicle", name: `${vehicle.year} ${vehicle.make} ${vehicle.model}`, brand: { "@type": "Brand", name: vehicle.make }, model: vehicle.model, vehicleModelDate: String(vehicle.year), image: vehicle.image, url: canonical, offers: { "@type": "Offer", priceCurrency: "KES", price: vehicle.price, availability: vehicle.status === "Reserved" ? "https://schema.org/SoldOut" : "https://schema.org/InStock", seller: { "@type": "Organization", name: "Zara Cars Kenya", url: siteOrigin } } } : { "@context": "https://schema.org", "@type": "Organization", name: "Zara Cars Kenya", url: siteOrigin, logo: `${siteOrigin}/manus-storage/zara-cars-mark_cffd7b67.png`, telephone: "+254700000000", areaServed: "Kenya" };
+    const structuredData = vehicle ? { "@context": "https://schema.org", "@type": "Vehicle", name: `${vehicle.year} ${vehicle.make} ${vehicle.model}`, brand: { "@type": "Brand", name: vehicle.make }, model: vehicle.model, vehicleModelDate: String(vehicle.year), image: vehicle.image, url: canonical, offers: { "@type": "Offer", priceCurrency: "KES", price: vehicle.price, availability: vehicle.status === "Reserved" ? "https://schema.org/SoldOut" : "https://schema.org/InStock", seller: { "@type": "Organization", name: "Zara Cars Kenya", url: siteOrigin } } } : { "@context": "https://schema.org", "@type": "Organization", name: "Zara Cars Kenya", url: siteOrigin, logo: `${siteOrigin}/Logo.jpg`, telephone: "+254700000000", areaServed: "Kenya" };
     setJsonLd(structuredData);
     let link = document.head.querySelector("link[rel=canonical]") as HTMLLinkElement | null;
     if (!link) { link = document.createElement("link"); link.rel = "canonical"; document.head.appendChild(link); }

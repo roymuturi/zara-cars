@@ -2,7 +2,7 @@
 import { useMemo, useState } from "react";
 import { ArrowRight, BadgeCheck, CalendarDays, CarFront, ChevronDown, CircleDollarSign, Clock3, Globe2, MessageCircle, Search, ShieldCheck, Sparkles, Tag } from "lucide-react";
 import { Link } from "wouter";
-import { PageFrame, VehicleCard } from "@/components/SiteChrome";
+import { PageFrame, VehicleCard, Logo, ThemeToggle } from "@/components/SiteChrome";
 import { imageSet, vehicles } from "@/lib/stock";
 
 function WhatsAppButton() {
@@ -29,8 +29,9 @@ export default function Home() {
   if (make !== "All makes") params.set("make", make);
   const searchHref = `/inventory${params.toString() ? `?${params.toString()}` : ""}`;
 
-  return <PageFrame dark>
+  return <PageFrame dark noHeader>
     <section className="original-hero">
+      <div className="landing-chrome"><Logo /><ThemeToggle /></div>
       <div className="original-hero-wash" />
       <div className="original-hero-orbit orbit-a" /><div className="original-hero-orbit orbit-b" />
       <div className="original-hero-inner">

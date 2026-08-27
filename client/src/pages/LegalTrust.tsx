@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { ArrowLeft, ArrowRight, CheckCircle2, FileCheck2, MessageCircle, ShieldCheck } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2, FileCheck2, MessageCircle, ShieldCheck, Lock, Scale, Award, Building2 } from "lucide-react";
 import Logo from "@/components/Logo";
 import LanguageToggle from "@/components/LanguageToggle";
 import { useTranslation } from "@/contexts/LanguageContext";
@@ -35,33 +35,64 @@ export default function LegalTrust() {
         <section className="grid gap-10 lg:grid-cols-[1.1fr_.9fr] lg:items-start">
           <div>
             <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-[#d91e2a]">{t("section.trust")}</p>
-            <h1 className="mt-3 font-display text-4xl font-extrabold tracking-[-0.035em] sm:text-5xl">{t("legal.headline")}</h1>
-            <p className="mt-3 max-w-xl text-base leading-7 text-slate-500">{t("legal.subhead")}</p>
+            <h1 className="mt-3 font-display text-4xl font-extrabold tracking-[-0.035em] sm:text-5xl">Legal, trust & standards</h1>
+            <p className="mt-3 max-w-xl text-base leading-7 text-slate-500">Zara Cars is built around transparency, compliance, and buyer protection. Below is how we handle legal licensing, data security, consumer rights, and operational standards.</p>
 
             <div className="mt-8 space-y-6">
               <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_8px_28px_rgba(11,31,58,0.03)]">
-                <h2 className="font-display text-xl font-extrabold text-[#0b1f3a]">Reservation deposits</h2>
-                <p className="mt-3 text-sm leading-7 text-slate-600">When you reserve a car, you pay a refundable deposit (typically KES 10,000) via M-Pesa STK Push. The car is held for 48 hours. If you decide not to proceed, the deposit is refunded in full within 5 working days. If you proceed, the deposit forms part of the purchase price.</p>
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#f4f5f7]">
+                    <Scale className="h-5 w-5 text-[#0b1f3a]" />
+                  </div>
+                  <h2 className="font-display text-xl font-extrabold text-[#0b1f3a]">Legal licensing & compliance</h2>
+                </div>
+                <p className="mt-3 text-sm leading-7 text-slate-600">Zara Cars operates in compliance with Kenyan consumer protection law, fair-trading requirements, and motor-vehicle registration rules. We maintain current business registration, tax compliance, and dealership licensing where required. All advertised vehicles are either owned stock or consigned with written authority.</p>
                 <div className="mt-4 flex items-center gap-2 text-sm font-semibold text-[#d91e2a]">
-                  <ShieldCheck className="h-4 w-4" /> Deposit protected by M-Pesa transaction record
+                  <FileCheck2 className="h-4 w-4" /> Verified business registration on file
                 </div>
               </div>
 
               <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_8px_28px_rgba(11,31,58,0.03)]">
-                <h2 className="font-display text-xl font-extrabold text-[#0b1f3a]">Refund policy</h2>
-                <p className="mt-3 text-sm leading-7 text-slate-600">Deposits are refundable if the car fails inspection, if the duty/clearing cost changes by more than 5%, or if the car is not ready within the agreed window. In all other cases, deposits are non-refundable but transferable to another Zara Cars vehicle within 90 days.</p>
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#f4f5f7]">
+                    <Lock className="h-5 w-5 text-[#0b1f3a]" />
+                  </div>
+                  <h2 className="font-display text-xl font-extrabold text-[#0b1f3a]">Data security & privacy</h2>
+                </div>
+                <p className="mt-3 text-sm leading-7 text-slate-600">Your contact details, viewing preferences, and finance notes are treated as confidential. We do not sell or share personal data with unrelated third parties. Access is restricted to the sales and operations team handling your enquiry. Sensitive data is stored using encrypted access controls and retained only as long as needed for the transaction or legal obligation.</p>
+                <div className="mt-4 flex items-center gap-2 text-sm font-semibold text-[#d91e2a]">
+                  <ShieldCheck className="h-4 w-4" /> End-to-end confidentiality for buyer records
+                </div>
               </div>
 
               <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_8px_28px_rgba(11,31,58,0.03)]">
-                <h2 className="font-display text-xl font-extrabold text-[#0b1f3a]">Duty & import explainer</h2>
-                <p className="mt-3 text-sm leading-7 text-slate-600">Kenyan import duty is calculated on the car's CIF (Cost, Insurance, Freight) value. Zara Cars breaks down the all-in price into vehicle price, duty & clearing, registration & inspection, and handling. We lock the final price before the car clears customs so you know exactly what you will pay.</p>
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#f4f5f7]">
+                    <Award className="h-5 w-5 text-[#0b1f3a]" />
+                  </div>
+                  <h2 className="font-display text-xl font-extrabold text-[#0b1f3a]">Consumer protection</h2>
+                </div>
+                <p className="mt-3 text-sm leading-7 text-slate-600">Every advertised price is accompanied by a clear drive-away breakdown. Reservation deposits are refundable within the published terms. If a vehicle fails independent inspection, or if duty and clearing change materially, we offer a full deposit refund or transfer option. We display accurate stock status and remove sold units promptly.</p>
                 <div className="mt-4 rounded-xl bg-[#f4f5f7] p-4 text-xs font-semibold text-slate-600">
-                  <p className="font-extrabold text-[#0b1f3a]">Typical breakdown for a KES 3M car:</p>
-                  <p className="mt-2">Vehicle price: KES 2,750,000</p>
-                  <p>Duty & clearing: KES 180,000</p>
-                  <p>Registration & inspection: KES 50,000</p>
-                  <p>Zara handling: KES 20,000</p>
-                  <p className="mt-2 font-extrabold text-[#0b1f3a]">Drive-away: KES 3,000,000</p>
+                  <p className="font-extrabold text-[#0b1f3a]">Buyer safeguards at a glance:</p>
+                  <p className="mt-2">• All-in pricing with no hidden fees</p>
+                  <p>• Refundable reserve within 48 hours</p>
+                  <p>• Independent inspection available on every unit</p>
+                  <p>• Clear paperwork and NTS support</p>
+                  <p>• WhatsApp trail for every enquiry and reservation</p>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_8px_28px_rgba(11,31,58,0.03)]">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#f4f5f7]">
+                    <Building2 className="h-5 w-5 text-[#0b1f3a]" />
+                  </div>
+                  <h2 className="font-display text-xl font-extrabold text-[#0b1f3a]">Company standards & quality assurance</h2>
+                </div>
+                <p className="mt-3 text-sm leading-7 text-slate-600">Zara Cars applies a consistent standard across stock intake, photography, pricing, and customer follow-up. Vehicles are presented with accurate mileage, condition notes, and verification history. Finance estimates are shown with clear assumptions, and trade-in valuations are based on visible condition and market data rather than guesswork.</p>
+                <div className="mt-4 flex items-center gap-2 text-sm font-semibold text-[#d91e2a]">
+                  <CheckCircle2 className="h-4 w-4" /> Standards reviewed before every listing goes live
                 </div>
               </div>
             </div>

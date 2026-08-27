@@ -7,13 +7,14 @@ import Home from "@/pages/Home";
 import Inventory from "@/pages/Inventory";
 import VehicleDetail from "@/pages/VehicleDetail";
 import DealerDashboard from "@/pages/DealerDashboard";
+import LegalTrust from "@/pages/LegalTrust";
 import NotFound from "@/pages/NotFound";
 import ServicePage from "@/pages/ServicePage";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import SEO from "@/components/SEO";
 
 function Router() {
-  return <Switch><Route path="/" component={Home} /><Route path="/inventory" component={Inventory} /><Route path="/inventory/:id" component={VehicleDetail} /><Route path="/dealer" component={DealerDashboard} /><Route path="/financing"><ServicePage type="finance" /></Route><Route path="/trade-in"><ServicePage type="trade" /></Route><Route path="/diaspora"><ServicePage type="diaspora" /></Route><Route path="/about"><ServicePage type="about" /></Route><Route path="/contact"><ServicePage type="contact" /></Route><Route path="/legal"><ServicePage type="legal" /></Route><Route path="/404" component={NotFound} /><Route component={NotFound} /></Switch>;
+  return <Switch><Route path="/" component={Home} /><Route path="/inventory" component={Inventory} /><Route path="/inventory/:id" component={VehicleDetail} /><Route path="/dealer" component={DealerDashboard} /><Route path="/financing"><ServicePage type="finance" /></Route><Route path="/trade-in"><ServicePage type="trade" /></Route><Route path="/diaspora"><ServicePage type="diaspora" /></Route><Route path="/about"><ServicePage type="about" /></Route><Route path="/contact"><ServicePage type="contact" /></Route><Route path="/legal" component={LegalTrust} /><Route path="/404" component={NotFound} /><Route component={NotFound} /></Switch>;
 }
 
 export default function App() {
