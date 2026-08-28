@@ -27,11 +27,12 @@ export type Vehicle = {
   updated: string;
   seller: string;
   segment: string;
+  rating: number;
 };
 
 export const imageSet = {
   brandMark: "/Logo.jpg",
-  harrierHero: "/cars/toyota/front.jpg",
+  harrierHero: "/harrier.jpeg",
   harrierFront: "/cars/toyota/front.jpg",
   harrierAngle: "/cars/toyota/side.jpg",
   harrierRear: "/cars/toyota/rear.jpg",
@@ -195,13 +196,14 @@ function makeVehicle(index: number, spec: (typeof catalog)[number], overrides: P
     updated: overrides.updated ?? `${(index % 7) + 1} hrs ago`,
     seller: overrides.seller ?? sellers[index % sellers.length],
     segment: spec.segment,
+    rating: overrides.rating ?? Math.floor(Math.random() * 2) + 4,
   };
 }
 
 const curatedVehicles: Vehicle[] = [
-  makeVehicle(0, catalog[0], { id: "zc-harrier-019", stockNo: "ZC-0194", year: 2019, price: 3865000, monthly: 78500, mileage: 80000, location: "Lavington, Nairobi", status: "Ready to view", color: "Pearl white", image: imageSet.harrierHero, gallery: [{ src: imageSet.harrierHero, label: "Front three-quarter" }, { src: imageSet.harrierAngle, label: "Side profile" }, { src: imageSet.harrierRear, label: "Rear three-quarter" }, { src: imageSet.harrierCabin, label: "Cabin detail" }], description: "A carefully selected, duty-paid Harrier with the calm ride height and cabin finish Nairobi families ask for. The paperwork is already in the file; the next step is simply seeing it in person.", verification: ["Duty paid and verified", "108-point condition check", "Japan auction sheet on file", "Price includes registration"], specs: { Drive: "AWD", Seats: "5", Doors: "5", Power: "170 hp", Torque: "180 Nm", Consumption: "14 km/l", Colour: "Pearl white", Registration: "KDG · 2019" }, updated: "12 min ago", seller: "Amina Wanjiku" }),
+  makeVehicle(0, catalog[0], { id: "zc-harrier-019", stockNo: "ZC-0194", year: 2019, price: 3865000, monthly: 78500, mileage: 80000, location: "Lavington, Nairobi", status: "Ready to view", color: "Pearl white", image: imageSet.harrierHero, gallery: [{ src: imageSet.harrierHero, label: "Front three-quarter" }, { src: imageSet.harrierAngle, label: "Side profile" }, { src: imageSet.harrierRear, label: "Rear three-quarter" }, { src: imageSet.harrierCabin, label: "Cabin detail" }], description: "The Toyota Harrier is a mid-size crossover SUV built on the TNGA GA-K platform, known in export markets as the Lexus RX from 1998 to 2013. Named after the eastern marsh harrier, this 2019 model pairs a 2.0L turbocharged engine with an AWD system and carries Toyota Safety Sense P. This specific unit is duty-paid, verified with a 108-point condition check, and ready for a showroom walk-through in Lavington.", verification: ["Duty paid and verified", "108-point condition check", "Japan auction sheet on file", "Price includes registration"], specs: { Drive: "AWD", Seats: "5", Doors: "5", Power: "170 hp", Torque: "180 Nm", Consumption: "14 km/l", Colour: "Pearl white", Registration: "KDG · 2019" }, updated: "12 min ago", seller: "Amina Wanjiku" }),
   makeVehicle(1, catalog[1], { id: "zc-rav4-020", stockNo: "ZC-0201", year: 2020, price: 4520000, monthly: 91800, mileage: 63800, location: "Westlands, Nairobi", status: "Duty paid", color: "Graphite grey", gallery: photosFor("Toyota", 4), description: "A practical, high-clearance RAV4 with clean lines, strong resale appeal, and a spec that suits both school runs and weekend escapes out of town." }),
-  makeVehicle(2, catalog[6], { id: "zc-forester-021", stockNo: "ZC-0218", year: 2018, price: 3245000, monthly: 65900, mileage: 71000, location: "Kilimani, Nairobi", status: "Ready to view", color: "Crystal black", gallery: photosFor("Subaru", 0), description: "The turbocharged Forester for drivers who want confident road manners, a higher driving position, and a little more response on the open road.", verification: ["Japan auction sheet on file", "Full service history", "Accident-free"] }),
+  makeVehicle(2, catalog[6], { id: "zc-forester-021", stockNo: "ZC-0218", year: 2018, price: 3245000, monthly: 65900, mileage: 71000, location: "Kilimani, Nairobi", status: "Ready to view", color: "Crystal black", gallery: photosFor("Subaru", 0), description: "The Subaru Forester is a compact crossover SUV with a symmetrical all-wheel-drive system and boxer engine that gives it a low center of gravity. Launched in 1997 and now in its fifth generation on the Subaru Global Platform, it features EyeSight driver assist and X-Mode for off-road confidence. This unit combines elevated driving position with practical, everyday usability for Kenyan roads.", verification: ["Japan auction sheet on file", "Full service history", "Accident-free"] }),
   makeVehicle(3, catalog[8], { id: "zc-cx5-022", stockNo: "ZC-0227", year: 2018, price: 2780000, monthly: 56500, mileage: 76000, location: "Riverside, Nairobi", status: "Clearing", color: "Soul red crystal", gallery: photosFor("Mazda", 0), description: "A well-specced diesel CX-5 in the final clearing stage. Reserve now and our team will keep the paperwork moving while you plan your viewing." }),
   makeVehicle(4, catalog[2], { id: "zc-hilux-023", stockNo: "ZC-0234", year: 2021, price: 5680000, monthly: 115400, mileage: 42000, location: "Mombasa Road, Nairobi", status: "In transit", color: "Arctic white", gallery: photosFor("Toyota", 5), description: "A low-mileage double cab for teams that need a dependable work partner with serious road presence. Arrival is tracked daily from Mombasa Road." }),
   makeVehicle(5, catalog[3], { id: "zc-axio-024", stockNo: "ZC-0240", year: 2019, price: 1895000, monthly: 38500, mileage: 68000, location: "Parklands, Nairobi", status: "Reserved", color: "Silver metallic", gallery: photosFor("Toyota", 4), description: "A compact hybrid sedan with city-friendly running costs and a clean, easy-to-own profile. Currently held for a buyer pending paperwork." }),

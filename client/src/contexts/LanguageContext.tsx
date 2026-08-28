@@ -26,7 +26,8 @@ const translations: Record<Language, Record<string, string>> = {
     "cta.askWhatsApp": "Ask on WhatsApp",
     "cta.playVideo": "Play",
     "hero.headline": "Know the car. Know the price. Drive with confidence.",
-    "hero.subhead": "Kenya's most transparent way to buy a car. Verified stock, live status, and one honest drive-away number.",
+    "hero.subhead":
+      "Kenya's most transparent way to buy a car. Verified stock, live status, and one honest drive-away number.",
     "hero.searchPlaceholder": "Search by make or model e.g. Toyota, Harrier",
     "hero.findMyCar": "Find my car",
     "hero.popular": "Popular:",
@@ -34,7 +35,8 @@ const translations: Record<Language, Record<string, string>> = {
     "hero.under3m": "Under KES 3M",
     "hero.hybrid": "Hybrid",
     "hero.readyToView": "Ready to view",
-    "footer.tagline": "Kenya's most transparent way to buy a car. Nairobi first, nationwide next.",
+    "footer.tagline":
+      "Kenya's most transparent way to buy a car. Nairobi first, nationwide next.",
     "footer.copy": "© 2026 Zara Cars. Transparent by design.",
     "status.inTransit": "In Transit",
     "status.clearing": "Clearing",
@@ -204,12 +206,18 @@ const translations: Record<Language, Record<string, string>> = {
     "diaspora.headline": "Buy from abroad. We handle Kenya.",
     "legal.headline": "Transparent by design.",
     "inventory.headline": "Find your next car.",
-    "financing.subhead": "We match you to the right partner based on how you earn — salaried, business owner, boda/matatu SACCO, or diaspora. No generic calculators, no cold calls.",
-    "tradeIn.subhead": "Tell us what you drive, add a few photos, and our team will send a provisional range. No pressure, no guesswork.",
-    "about.subhead": "Zara Cars was founded in Nairobi to fix the one thing the used-car market refuses to solve: trust. We inspect, verify, and price every car as if our own family were buying it.",
-    "contact.subhead": "Visit the yard, call us, or WhatsApp. No call centres, no automated replies — a real Zara Cars person picks up.",
-    "diaspora.subhead": "A dedicated flow for Kenyans abroad buying for family at home: pay in USD/EUR, second delivery contact, WhatsApp updates in place of site logins.",
-    "legal.subhead": "We publish the policies that most dealer sites hide. If you have a question, ask us directly on WhatsApp.",
+    "financing.subhead":
+      "We match you to the right partner based on how you earn — salaried, business owner, boda/matatu SACCO, or diaspora. No generic calculators, no cold calls.",
+    "tradeIn.subhead":
+      "Tell us what you drive, add a few photos, and our team will send a provisional range. No pressure, no guesswork.",
+    "about.subhead":
+      "Zara Cars was founded in Nairobi to fix the one thing the used-car market refuses to solve: trust. We inspect, verify, and price every car as if our own family were buying it.",
+    "contact.subhead":
+      "Visit the yard, call us, or WhatsApp. No call centres, no automated replies — a real Zara Cars person picks up.",
+    "diaspora.subhead":
+      "A dedicated flow for Kenyans abroad buying for family at home: pay in USD/EUR, second delivery contact, WhatsApp updates in place of site logins.",
+    "legal.subhead":
+      "We publish the policies that most dealer sites hide. If you have a question, ask us directly on WhatsApp.",
   },
   sw: {
     "nav.home": "Nyumbani",
@@ -234,7 +242,8 @@ const translations: Record<Language, Record<string, string>> = {
     "cta.askWhatsApp": "Uliza kwa WhatsApp",
     "cta.playVideo": "Cheza",
     "hero.headline": "Jua gari. Jua bei. Endelea kwa uhakika.",
-    "hero.subhead": "Njia ya uwazi zaidi ya kununua gari Kenya. Stock iliyothibitishwa, hali halisi, na bei kamili moja.",
+    "hero.subhead":
+      "Njia ya uwazi zaidi ya kununua gari Kenya. Stock iliyothibitishwa, hali halisi, na bei kamili moja.",
     "hero.searchPlaceholder": "Tafuta kwa au mfano e.g. Toyota, Harrier",
     "hero.findMyCar": "Pata gari langu",
     "hero.popular": "Maarufu:",
@@ -242,7 +251,8 @@ const translations: Record<Language, Record<string, string>> = {
     "hero.under3m": "Chini ya KES 3M",
     "hero.hybrid": "Hybrid",
     "hero.readyToView": "Tayari kutazama",
-    "footer.tagline": "Njia ya uwazi zaidi ya kununua gari Kenya. Nairobi kwanza, nchi nzima inafuata.",
+    "footer.tagline":
+      "Njia ya uwazi zaidi ya kununua gari Kenya. Nairobi kwanza, nchi nzima inafuata.",
     "footer.copy": "© 2026 Zara Cars. Uwazi kwa muundo.",
     "status.inTransit": "Nje ya nchi",
     "status.clearing": "Inafanywa usafi",
@@ -412,12 +422,18 @@ const translations: Record<Language, Record<string, string>> = {
     "diaspora.headline": "Ununue kutoka nje. Tunashughulikia Kenya.",
     "legal.headline": "Uwazi kwa muundo.",
     "inventory.headline": "Pata gari lako lijalo.",
-    "financing.subhead": "Tunakufananisha na mfanyabiashara wa haki kulingana na jinsi unavyopata kipato — mfanyabiashara, mwenye biashara, SACCO ya boda/matatu, au diaspora. Hakuna kalkuleta za kawaida, hakuna simu za baridi.",
-    "tradeIn.subhead": "Tuambie gari unalolowesha, ongeza picha chache, na timu yetu itakutumia kipimo cha muda. Hakuna shinikizo, hakuna kudhihirisha.",
-    "about.subhead": "Zara Cars ilianzishwa Nairobi kutatua kitu kimoja ambacho soko la gari la zamani hukataa kutatua: uaminifu. Tunaangalia, kuthibitisha, na kupisha gari kila mmoja kama familia yetu inavyonunua.",
-    "contact.subhead": "Tembelea yadi, sutua, au WhatsApp. Hakuna vituo vya simu, hakuna majibu ya kiotomatiki — mtu wa Zara Cars anaosimama anapokea.",
-    "diaspora.subhead": "Mfumo wa kawaida kwa Wakenya wa nje wanunuao kwa familia nyumbani: lipa kwa USD/EUR, mawasiliano ya mtu mwingine wa Nairobi, taarifa za WhatsApp badala ya kuingia kwenye tovuti.",
-    "legal.subhead": "Tuchapue sera ambayo mito mingi ya wafanyabiashara inaficha. Kama una swali, tuulize moja kwa moja kwa WhatsApp.",
+    "financing.subhead":
+      "Tunakufananisha na mfanyabiashara wa haki kulingana na jinsi unavyopata kipato — mfanyabiashara, mwenye biashara, SACCO ya boda/matatu, au diaspora. Hakuna kalkuleta za kawaida, hakuna simu za baridi.",
+    "tradeIn.subhead":
+      "Tuambie gari unalolowesha, ongeza picha chache, na timu yetu itakutumia kipimo cha muda. Hakuna shinikizo, hakuna kudhihirisha.",
+    "about.subhead":
+      "Zara Cars ilianzishwa Nairobi kutatua kitu kimoja ambacho soko la gari la zamani hukataa kutatua: uaminifu. Tunaangalia, kuthibitisha, na kupisha gari kila mmoja kama familia yetu inavyonunua.",
+    "contact.subhead":
+      "Tembelea yadi, sutua, au WhatsApp. Hakuna vituo vya simu, hakuna majibu ya kiotomatiki — mtu wa Zara Cars anaosimama anapokea.",
+    "diaspora.subhead":
+      "Mfumo wa kawaida kwa Wakenya wa nje wanunuao kwa familia nyumbani: lipa kwa USD/EUR, mawasiliano ya mtu mwingine wa Nairobi, taarifa za WhatsApp badala ya kuingia kwenye tovuti.",
+    "legal.subhead":
+      "Tuchapue sera ambayo mito mingi ya wafanyabiashara inaficha. Kama una swali, tuulize moja kwa moja kwa WhatsApp.",
   },
 };
 
@@ -433,11 +449,20 @@ const TranslationContext = createContext<TranslationContextType>({
   t: (key, fallback) => fallback ?? key,
 });
 
-export function TranslationProvider({ children }: { children: React.ReactNode }) {
+export function TranslationProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const [language, setLanguage] = useState<Language>("en");
-  const toggle = () => setLanguage((prev) => (prev === "en" ? "sw" : "en"));
-  const t = (key: string, fallback?: string) => translations[language][key] ?? fallback ?? key;
-  return <TranslationContext.Provider value={{ language, toggle, t }}>{children}</TranslationContext.Provider>;
+  const toggle = () => setLanguage(prev => (prev === "en" ? "sw" : "en"));
+  const t = (key: string, fallback?: string) =>
+    translations[language][key] ?? fallback ?? key;
+  return (
+    <TranslationContext.Provider value={{ language, toggle, t }}>
+      {children}
+    </TranslationContext.Provider>
+  );
 }
 
 export function useTranslation() {
