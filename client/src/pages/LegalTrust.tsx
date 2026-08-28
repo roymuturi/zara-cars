@@ -5,7 +5,7 @@ import { PageFrame, WhatsAppButton } from "@/components/SiteChrome";
 export default function LegalTrust() {
   return <PageFrame>
     <section className="page-container" style={{ paddingTop: "72px", paddingBottom: "96px" }}>
-      <Link href="/" className="text-link" style={{ marginBottom: "28px" }}><ArrowLeft size={14} /> Back to home</Link>
+      <Link href="/" className="text-link" style={{ marginBottom: "28px" }}><ArrowLeft size={16} /> Back to home</Link>
 
       <p className="section-kicker">Trust & verification</p>
       <h1 className="section-heading">Legal, trust & standards</h1>
@@ -24,7 +24,7 @@ export default function LegalTrust() {
               <h3>Legal licensing & compliance</h3>
             </div>
             <p>We operate in compliance with Kenyan consumer protection law, fair-trading requirements, and motor-vehicle registration rules. We maintain current business registration, tax compliance, and dealership licensing where required.</p>
-            <p className="feature-list"><FileCheck2 size={14} /> Verified business registration on file</p>
+            <p className="feature-list"><FileCheck2 size={16} /> Verified business registration on file</p>
           </div>
 
           <div className="info-card">
@@ -33,7 +33,7 @@ export default function LegalTrust() {
               <h3>Data security & privacy</h3>
             </div>
             <p>Your contact details, viewing preferences, and finance notes are treated as confidential. We do not sell or share personal data with unrelated third parties. Sensitive data is stored using encrypted access controls and retained only as long as needed.</p>
-            <p className="feature-list"><ShieldCheck size={14} /> End-to-end confidentiality for buyer records</p>
+            <p className="feature-list"><ShieldCheck size={16} /> End-to-end confidentiality for buyer records</p>
           </div>
 
           <div className="info-card">
@@ -58,7 +58,7 @@ export default function LegalTrust() {
               <h3>Company standards & quality assurance</h3>
             </div>
             <p>Zara Cars applies a consistent standard across stock intake, photography, pricing, and customer follow-up. Vehicles are presented with accurate mileage, condition notes, and verification history.</p>
-            <p className="feature-list"><CheckCircle2 size={14} /> Standards reviewed before every listing goes live</p>
+            <p className="feature-list"><CheckCircle2 size={16} /> Standards reviewed before every listing goes live</p>
           </div>
         </div>
 

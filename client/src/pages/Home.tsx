@@ -12,7 +12,7 @@ function StatStrip() {
     { value: "KES", label: "All-in pricing", Icon: CircleDollarSign, color: "red" },
     { value: "Nairobi", label: "Showroom + delivery", Icon: Globe2, color: "navy" },
   ];
-  return <div className="original-stat-strip">{stats.map(({ value, label, Icon, color }) => <div key={label}><span className="original-stat-icon" style={{ color: color === "red" ? "var(--red)" : "var(--ink)" }}><Icon size={18} /></span><div><strong>{value}</strong><small>{label}</small></div></div>)}</div>;
+  return <div className="original-stat-strip">{stats.map(({ value, label, Icon, color }) => <div key={label}><span className="original-stat-icon" style={{ color: color === "red" ? "var(--red)" : "var(--ink)" }}><Icon size={20} /></span><div><strong>{value}</strong><small>{label}</small></div></div>)}</div>;
 }
 
 export default function Home() {

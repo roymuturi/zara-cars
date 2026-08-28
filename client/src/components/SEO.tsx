@@ -89,6 +89,20 @@ function setJsonLd(data: unknown) {
 export default function SEO() {
   const [location] = useLocation();
   useEffect(() => {
+    const hash = window.location.hash.replace("#", "");
+    if (hash) {
+      requestAnimationFrame(() => {
+        const target = document.getElementById(hash);
+        if (target) {
+          const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+          target.scrollIntoView({
+            behavior: reduced ? "auto" : "smooth",
+            block: "start",
+          });
+        }
+      });
+    }
+  }, [location]);
     const vehicleId = location.match(/^\/inventory\/([^/?#]+)/)?.[1];
     const vehicle = vehicleId
       ? vehicles.find(item => item.id === vehicleId)

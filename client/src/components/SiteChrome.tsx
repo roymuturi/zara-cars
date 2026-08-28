@@ -32,7 +32,7 @@ export function WhatsAppButton({ compact = false }: { compact?: boolean }) {
       className={`whatsapp-action ${compact ? "compact" : ""}`}
       aria-label="Chat with Zara Cars on WhatsApp"
     >
-      <MessageCircle size={compact ? 14 : 15} />
+      <MessageCircle size={compact ? 14 : 20} />
       {!compact && " WhatsApp"}
     </a>
   );
@@ -276,14 +276,14 @@ export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
               className="vehicle-whatsapp"
               aria-label={`WhatsApp about ${vehicle.year} ${vehicle.make} ${vehicle.model}`}
             >
-              WhatsApp <MessageCircle size={13} />
+              WhatsApp       <MessageCircle size={16} />
             </a>
             <Link
               href={`/inventory/${vehicle.id}`}
               className="view-details"
               aria-label={`View details for ${vehicle.year} ${vehicle.make} ${vehicle.model}`}
             >
-              View details <ArrowRight size={14} />
+              View details <ArrowRight size={16} />
             </Link>
           </div>
         </div>
@@ -312,7 +312,7 @@ export function Footer() {
         <div className="footer-dealer-block">
           <p>For modern dealerships</p>
           <Link href="/dealer" className="dealer-login-button">
-            Dealer workspace <ArrowRight size={14} />
+            Dealer workspace <ArrowRight size={16} />
           </Link>
         </div>
         <div className="footer-contact">
