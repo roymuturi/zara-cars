@@ -2014,3 +2014,65 @@ The ideal visual feeling is:
 And the ideal interaction feeling is:
 
 > **I clicked something, and Zara Cars took me exactly where I expected to go.**
+84. DEALER WORKSPACE — DOUBLE HEADING BUG
+
+Confirmed in client/src/pages/DealerDashboard.tsx. Every dealer view currently renders two stacked heading blocks instead of one, which reads as a duplicated/broken header on every tab.
+
+Structure today:
+
+The outer <header className="dealer-header"> (rendered once, wraps all views) shows: {timeLabel} (e.g. "Friday, 28 August 2026 at 03:03 pm · Nairobi") → <h1>{navItems.find(item => item.key === view)?.label}</h1> (e.g. "Stock desk") → a global "Add stock" button (with a notification-count badge next to it) in .dealer-header-actions.
+Immediately below, each view component (StockView, LeadInbox/leads view, ReservationsView, TradeInsView, FinanceView, SalesView, TeamView — the pattern repeats via the shared SectionHeading component defined at line 26) renders its own second heading: <p className="section-kicker">{eyebrow}</p><h2>{title}</h2>, e.g. eyebrow "Dealer operations / Inventory", title "Inventory list" — plus, for most views, a second action button (Assign lead, Create hold, New valuation, Match a buyer, Invite member).
+
+Result on the Stock tab specifically: h1 "Stock desk" is immediately followed by eyebrow "Dealer operations / Inventory" and title "Inventory list", and there are literally two identical "Add stock" buttons on screen doing the exact same thing (both call the same onAdd → setModalOpen(true)). On the other tabs the wording isn't identical but the same double-heading stack still appears (nav-label h1, then eyebrow+title again), which reads as a rendering bug even though the second action button's label differs.
+
+85. DEALER WORKSPACE — FIX
+
+Collapse this to a single heading per view. Recommended approach (keeps the more informative, per-view-specific text and removes the redundant generic one):
+
+Remove the <h1>{navItems.find(item => item.key === view)?.label}</h1> from dealer-header. The active section is already communicated by the highlighted item in .dealer-nav in the sidebar, so this h1 is pure duplication of information the user already has.
+Keep {timeLabel} in dealer-header (it's a small .section-kicker-styled utility line, not a heading, and is genuinely useful — real-time context).
+Keep the header's global "Add stock" button in .dealer-header-actions as a persistent quick action available from any tab (that's a reasonable pattern — a dealer can add a vehicle without navigating to the Stock tab first).
+On the Stock view specifically, since the global header button already covers "Add stock," remove the action/onAction props from that view's <SectionHeading eyebrow="Dealer operations / Inventory" title="Inventory list" .../> call so it doesn't render a second, identical "Add stock" button. Leave the other views' SectionHeading action buttons as-is (Assign lead, Create hold, New valuation, Match a buyer, Invite member) — those are distinct, context-specific actions, not duplicates, and should stay.
+After removing the outer h1, double check .dealer-header layout doesn't leave awkward empty space where the h1 was — dealer-header-left should now just contain the mobile menu button (on mobile) and {timeLabel}; adjust flex/gap only if needed to keep it visually balanced, without changing the header's overall height or the rest of its layout.
+86. READY-TO-PASTE KILO ADDENDUM — DEALER DOUBLE HEADING FIX
+text
+Read ZARA-CARS-POLISH-PASS.md, sections 84-85.
+
+In client/src/pages/DealerDashboard.tsx, every dealer workspace view
+renders two stacked headings: the outer dealer-header's <h1> (the nav
+item label, e.g. "Stock desk") immediately followed by that view's own
+SectionHeading component (eyebrow + h2 title, e.g. "Dealer operations /
+Inventory" / "Inventory list"). On the Stock tab this also produces two
+identical "Add stock" buttons that trigger the same action.
+
+Fix:
+1. Remove the <h1> nav-label heading from dealer-header entirely (the
+   active sidebar item already shows which section you're in). Keep
+   the {timeLabel} line in the header as-is.
+2. Keep the header's global "Add stock" button as a persistent
+   cross-tab quick action.
+3. On the Stock view only, remove the action/onAction props from its
+   SectionHeading call so it no longer renders a second "Add stock"
+   button. Leave every other view's SectionHeading action button
+   (Assign lead, Create hold, New valuation, Match a buyer, Invite
+   member) unchanged - those are distinct actions, not duplicates.
+4. Adjust dealer-header-left layout only if needed to avoid odd empty
+   space now that the h1 is gone. Don't change header height or any
+   other dealer layout.
+
+Do not touch anything else in the dealer dashboard - this is a
+duplication fix only.
+
+Run typecheck, lint and build.
+
+Report:
+1. what was removed vs kept in dealer-header
+2. confirmation each of the 7 dealer views (Overview, Stock, Leads,
+   Reservations, Trade-ins, Finance, Sales, Team) now shows exactly
+   one heading block
+3. confirmation the Stock tab no longer has a duplicate Add stock
+   button
+4. build/typecheck/lint result
+87. DEALER WORKSPACE QA
+
+[ ] Overview tab shows one heading block, no duplicate [ ] Stock tab shows one heading block and only one "Add stock" button [ ] Leads tab shows one heading block [ ] Reservations tab shows one heading block [ ] Trade-ins tab shows one heading block [ ] Finance matches tab shows one heading block [ ] Sales tab shows one heading block [ ] Team tab shows one heading block [ ] Time/location line still visible in the dealer header [ ] Global "Add stock" header button still opens the add-stock modal from any tab [ ] Each view's own action button (Assign lead / Create hold / New valuation / Match a buyer / Invite member) still works [ ] Sidebar active-tab highlight still clearly indicates current section [ ] No layout gap or misalignment left behind in dealer-header [ ] Typecheck passes [ ] Lint passes [ ] Build passes

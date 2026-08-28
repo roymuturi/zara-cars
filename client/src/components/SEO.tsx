@@ -103,6 +103,7 @@ export default function SEO() {
       });
     }
   }, [location]);
+  useEffect(() => {
     const vehicleId = location.match(/^\/inventory\/([^/?#]+)/)?.[1];
     const vehicle = vehicleId
       ? vehicles.find(item => item.id === vehicleId)
