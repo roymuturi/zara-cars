@@ -683,6 +683,7 @@ img { display: block; max-width: 100%; }
 .original-spec-table { display: grid; grid-template-columns: repeat(4, 1fr); border-radius: 24px; border: 1px solid var(--line); background: var(--surface); overflow: hidden; }
 .original-spec-table > div { padding: 22px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 .original-spec-table > div:nth-child(4n) { border-right: 0; }
+.original-spec-table > div svg { display: block; margin-bottom: 6px; color: var(--red); }
 .original-spec-table small { display: block; color: var(--muted); font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .1em; }
 .original-spec-table strong { display: block; margin-top: 6px; color: var(--ink); font-size: 14px; font-weight: 800; }
 
