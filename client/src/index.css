@@ -733,7 +733,7 @@ img { display: block; max-width: 100%; }
 .original-stock-section { margin-top: 56px; }
 .original-section-heading { align-items: baseline; }
 .original-section-heading h2 { max-width: 470px; color: var(--ink); font-size: clamp(2.4rem, 4vw, 4rem); line-height: .94; }
-.original-section-heading .text-link { font-size: 15px; }
+.original-section-heading .text-link { font-size: 14px; }
 .original-vehicle-grid { margin-top: 26px; }
 .original-bottom-cta { margin-top: 56px; }
 .original-bottom-cta h2 { font-size: clamp(2.4rem, 3.4vw, 3.5rem); }
