@@ -7,7 +7,8 @@ export function ContactForm() {
   const contactMethods = ["WhatsApp", "Phone", "Email"] as const;
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [method, setMethod] = useState<(typeof contactMethods)[number]>("WhatsApp");
+  const [method, setMethod] =
+    useState<(typeof contactMethods)[number]>("WhatsApp");
   const [message, setMessage] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
@@ -20,13 +21,24 @@ export function ContactForm() {
     <section id="contact-form" className="contact-form-section">
       <div className="contact-form">
         <h2>Send us a message</h2>
-        <p>Ask for a walkaround, a second look at the paperwork, or a quiet viewing slot. We reply within minutes on WhatsApp.</p>
+        <p>
+          Ask for a walkaround, a second look at the paperwork, or a quiet
+          viewing slot. We reply within minutes on WhatsApp.
+        </p>
         {submitted ? (
           <div className="contact-success">
             <Check size={48} />
             <h3>Message sent.</h3>
-            <p>A Zara Cars specialist will get back to you shortly — usually within minutes on WhatsApp.</p>
-            <button className="button button-red" onClick={() => setSubmitted(false)}>Send another message</button>
+            <p>
+              A Zara Cars specialist will get back to you shortly — usually
+              within minutes on WhatsApp.
+            </p>
+            <button
+              className="button button-red"
+              onClick={() => setSubmitted(false)}
+            >
+              Send another message
+            </button>
           </div>
         ) : (
           <form onSubmit={handleSubmit}>
@@ -36,7 +48,7 @@ export function ContactForm() {
                 <input
                   type="text"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={e => setName(e.target.value)}
                   className="form-control-input"
                   placeholder="e.g. Wanjiku Kamau"
                   required
@@ -47,7 +59,7 @@ export function ContactForm() {
                 <input
                   type="tel"
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  onChange={e => setPhone(e.target.value)}
                   className="form-control-input"
                   placeholder="07XX XXX XXX"
                   required
@@ -56,7 +68,7 @@ export function ContactForm() {
               <div className="contact-field">
                 <label>Preferred contact method</label>
                 <div className="contact-method-toggle">
-                  {contactMethods.map((m) => (
+                  {contactMethods.map(m => (
                     <button
                       key={m}
                       type="button"
@@ -72,7 +84,7 @@ export function ContactForm() {
                 <label>Your message</label>
                 <textarea
                   value={message}
-                  onChange={(e) => setMessage(e.target.value)}
+                  onChange={e => setMessage(e.target.value)}
                   className="form-control-input"
                   placeholder="What can we help you with?"
                   rows={4}

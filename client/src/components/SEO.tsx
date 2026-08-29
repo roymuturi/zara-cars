@@ -1,7 +1,7 @@
 // SEO metadata manager: public routes are indexable, while dealer operations stay out of search results.
 import { useEffect } from "react";
 import { useLocation } from "wouter";
-import { vehicles } from "@/lib/stock";
+import { useVehicle } from "@/hooks/useVehicles";
 
 const siteOrigin =
   import.meta.env.VITE_SITE_ORIGIN || "https://zara-cars.manus.space";
@@ -88,13 +88,17 @@ function setJsonLd(data: unknown) {
 
 export default function SEO() {
   const [location] = useLocation();
+  const vehicleId = location.match(/^\/inventory\/([^/?#]+)/)?.[1];
+  const { data: vehicle } = useVehicle(vehicleId);
   useEffect(() => {
     const hash = window.location.hash.replace("#", "");
     if (hash) {
       requestAnimationFrame(() => {
         const target = document.getElementById(hash);
         if (target) {
-          const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+          const reduced = window.matchMedia(
+            "(prefers-reduced-motion: reduce)"
+          ).matches;
           target.scrollIntoView({
             behavior: reduced ? "auto" : "smooth",
             block: "start",
@@ -104,10 +108,7 @@ export default function SEO() {
     }
   }, [location]);
   useEffect(() => {
-    const vehicleId = location.match(/^\/inventory\/([^/?#]+)/)?.[1];
-    const vehicle = vehicleId
-      ? vehicles.find(item => item.id === vehicleId)
-      : undefined;
+    const isInternal = location === "/dealer" || location === "/404";
     const meta = vehicle
       ? {
           title: `${vehicle.year} ${vehicle.make} ${vehicle.model} for sale in Kenya | Zara Cars`,
@@ -118,7 +119,6 @@ export default function SEO() {
           description:
             "Premium, verified vehicles for Nairobi roads and beyond.",
         });
-    const isInternal = location === "/dealer" || location === "/404";
     const canonical = `${siteOrigin}${vehicle ? `/inventory/${vehicle.id}` : location}`;
     document.title = meta.title;
     setMeta("description", meta.description);
@@ -147,7 +147,7 @@ export default function SEO() {
             priceCurrency: "KES",
             price: vehicle.price,
             availability:
-              vehicle.status === "Reserved"
+              vehicle.status === "reserved"
                 ? "https://schema.org/SoldOut"
                 : "https://schema.org/InStock",
             seller: {
@@ -176,6 +176,6 @@ export default function SEO() {
       document.head.appendChild(link);
     }
     link.href = canonical;
-  }, [location]);
+  }, [location, vehicle]);
   return null;
 }

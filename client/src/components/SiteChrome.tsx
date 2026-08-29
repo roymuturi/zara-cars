@@ -1,32 +1,22 @@
-// White / Zara red / navy restoration: shared chrome stays quiet, product-led, and uses the real uploaded Logo.jpg plus compact make badges.
-import { useState } from "react";
-import { ArrowRight, Menu, MessageCircle, Moon, Sun, X } from "lucide-react";
+// Shared page chrome: header, navigation, footer, and the canonical vehicle
+// primitives. Vehicle data flows from the Supabase-backed data layer
+// (@/data/vehicles/vehicle.types), never from a hard-coded catalogue.
+import { useEffect, useState } from "react";
+import { ArrowRight, ArrowUp, Menu, MessageCircle, Moon, Sun, X } from "lucide-react";
 import { Link } from "wouter";
 import { useTheme } from "@/contexts/ThemeContext";
-import { imageSet, makeMeta, money, type Vehicle } from "@/lib/stock";
-import {
-  siAudi,
-  siBmw,
-  siFord,
-  siHonda,
-  siHyundai,
-  siJeep,
-  siKia,
-  siMazda,
-  siMitsubishi,
-  siNissan,
-  siPeugeot,
-  siSubaru,
-  siSuzuki,
-  siToyota,
-  siVolkswagen,
-  siVolvo,
-} from "simple-icons/icons";
+import { money } from "@/lib/formatters";
+import { makeMeta } from "@/lib/makeMeta";
+import { BRAND_MARK } from "@/lib/assets";
+import { whatsAppUrl } from "@/lib/contact";
+import { VehicleImage } from "@/components/VehicleImage";
+import type { Vehicle, VehicleStatus } from "@/data/vehicles/vehicle.types";
+import { STATUS_TONE, STATUS_LABELS } from "@/data/vehicles/vehicle.types";
 
 export function WhatsAppButton({ compact = false }: { compact?: boolean }) {
   return (
     <a
-      href="https://wa.me/254700000000?text=Hi%20Zara%20Cars"
+      href={whatsAppUrl("Hi Zara Cars")}
       target="_blank"
       rel="noreferrer"
       className={`whatsapp-action ${compact ? "compact" : ""}`}
@@ -41,11 +31,7 @@ export function WhatsAppButton({ compact = false }: { compact?: boolean }) {
 export function Logo({ compact = false }: { compact?: boolean }) {
   return (
     <Link href="/" className="brand-lockup" aria-label="Zara Cars home">
-      <img
-        src={imageSet.brandMark}
-        alt="Zara Cars logo"
-        className="brand-mark"
-      />
+      <img src={BRAND_MARK} alt="Zara Cars logo" className="brand-mark" />
       {!compact && (
         <span className="brand-wordmark">
           <strong>ZARA</strong>
@@ -132,26 +118,6 @@ export function SiteHeader({ dark = false }: { dark?: boolean }) {
   );
 }
 
-const officialBrandIcons: Record<string, typeof siToyota> = {
-  Toyota: siToyota,
-  Subaru: siSubaru,
-  Mazda: siMazda,
-  Nissan: siNissan,
-  Mitsubishi: siMitsubishi,
-  Honda: siHonda,
-  Suzuki: siSuzuki,
-  BMW: siBmw,
-  Ford: siFord,
-  Volkswagen: siVolkswagen,
-  Hyundai: siHyundai,
-  Kia: siKia,
-  Peugeot: siPeugeot,
-  Lexus: siToyota,
-  Jeep: siJeep,
-  Volvo: siVolvo,
-  Audi: siAudi,
-};
-
 export function MakeBadge({
   make,
   showLabel = true,
@@ -164,7 +130,6 @@ export function MakeBadge({
     color: "#0b1f3a",
     light: "#e8eef5",
   };
-  const icon = officialBrandIcons[make];
   const logo = (meta as { logo?: string }).logo;
   return (
     <span
@@ -176,16 +141,7 @@ export function MakeBadge({
         } as React.CSSProperties
       }
     >
-      {icon ? (
-        <svg
-          className="make-badge-svg"
-          viewBox="0 0 24 24"
-          role="img"
-          aria-label={`${make} logo`}
-        >
-          <path d={icon.path} />
-        </svg>
-      ) : logo ? (
+      {logo ? (
         <img
           className="make-badge-logo"
           src={logo}
@@ -200,25 +156,25 @@ export function MakeBadge({
   );
 }
 
-export function StatusPill({ status }: { status: Vehicle["status"] }) {
-  const tone =
-    status === "Ready to view"
-      ? "green"
-      : status === "Duty paid"
-        ? "blue"
-        : status === "Reserved"
-          ? "slate"
-          : "amber";
+export function StatusPill({ status }: { status: VehicleStatus }) {
+  const tone = STATUS_TONE[status] ?? "slate";
   return (
     <span className={`status-pill ${tone}`}>
       <span className="status-dot" />
-      {status}
+      {STATUS_LABELS[status] ?? status}
     </span>
   );
 }
 
+function primaryImage(vehicle: Vehicle) {
+  return vehicle.images?.find(img => img.isPrimary) ?? vehicle.images?.[0];
+}
+
 export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
-  const whatsapp = `https://wa.me/254700000000?text=${encodeURIComponent(`Hi Zara Cars, I'm interested in ${vehicle.year} ${vehicle.make} ${vehicle.model} (${vehicle.stockNo}).`)}`;
+  const primary = primaryImage(vehicle);
+  const whatsapp = whatsAppUrl(
+    `Hi Zara Cars, I'm interested in ${vehicle.year} ${vehicle.make} ${vehicle.model} (${vehicle.stockNo}).`
+  );
   return (
     <article className="vehicle-card">
       <Link
@@ -226,10 +182,12 @@ export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
         className="vehicle-card-image"
         aria-label={`View ${vehicle.year} ${vehicle.make} ${vehicle.model} details`}
       >
-        <img
-          src={vehicle.image}
+        <VehicleImage
+          objectKey={primary?.objectKey}
+          publicUrl={vehicle.image}
+          profile="vehicle-card"
           alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
-          loading="lazy"
+          className="card-img"
         />
         <div className="vehicle-card-overlay" />
         <div className="vehicle-card-top">
@@ -252,7 +210,7 @@ export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
           <div>
             <h3>{vehicle.model}</h3>
             <p>
-              {vehicle.trim} · {vehicle.color}
+              {vehicle.variant} · {vehicle.color}
             </p>
           </div>
           <span className="body-tag">{vehicle.body}</span>
@@ -276,7 +234,7 @@ export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
               className="vehicle-whatsapp"
               aria-label={`WhatsApp about ${vehicle.year} ${vehicle.make} ${vehicle.model}`}
             >
-              WhatsApp       <MessageCircle size={16} />
+              WhatsApp <MessageCircle size={16} />
             </a>
             <Link
               href={`/inventory/${vehicle.id}`}
@@ -340,6 +298,34 @@ export function AmbientBackground() {
   );
 }
 
+export function BackToTop() {
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setVisible(window.scrollY > 400);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+  if (!visible) return null;
+  const handleClick = () => {
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    window.scrollTo({
+      top: 0,
+      behavior: reduced ? "auto" : "smooth",
+    });
+  };
+  return (
+    <button
+      className="back-to-top"
+      onClick={handleClick}
+      aria-label="Back to top"
+      title="Back to top"
+    >
+      <ArrowUp size={20} />
+    </button>
+  );
+}
+
 export function PageFrame({
   children,
   dark = false,
@@ -357,6 +343,7 @@ export function PageFrame({
       {!noHeader && <SiteHeader dark={dark} />}
       <main className="page-content">{children}</main>
       <Footer />
+      <BackToTop />
     </div>
   );
 }

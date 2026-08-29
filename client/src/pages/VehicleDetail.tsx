@@ -1,22 +1,465 @@
-// White / Zara red / navy restoration: a dealer-style listing page with a real gallery, cash/finance split, stock ledger, and clear contact actions.
+// Vehicle detail page: pulls a single unit from the data layer and renders it
+// through the canonical VehicleImage pipeline. No hard-coded catalogue.
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, ArrowRight, BadgeCheck, CalendarDays, Check, Clock3, DoorClosed, Download, FileCheck2, Fuel, Gauge, MapPin, MessageCircle, Palette, Play, Settings, ShieldCheck, Star, Tag, User, X, Zap } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  BadgeCheck,
+  CalendarDays,
+  Check,
+  Clock3,
+  DoorClosed,
+  Download,
+  FileCheck2,
+  Fuel,
+  Gauge,
+  MapPin,
+  MessageCircle,
+  Palette,
+  Play,
+  Settings,
+  ShieldCheck,
+  Star,
+  Tag,
+  User,
+  X,
+  Zap,
+} from "lucide-react";
 import { Link, useRoute } from "wouter";
-import { MakeBadge, PageFrame, StatusPill } from "@/components/SiteChrome";
-import { money, vehicles } from "@/lib/stock";
+import { PageFrame, StatusPill } from "@/components/SiteChrome";
+import { VehicleImage } from "@/components/VehicleImage";
+import { money } from "@/lib/formatters";
+import { whatsAppUrl } from "@/lib/contact";
+import { useVehicle, useVehicles } from "@/hooks/useVehicles";
 import { downloadVehicleOverview } from "@/lib/vehiclePdf";
+import type { VehicleFilters } from "@/data/vehicles/vehicle.types";
+
+const specIcons: Record<string, typeof Settings> = {
+  Drive: Settings,
+  Seats: User,
+  Doors: DoorClosed,
+  Power: Zap,
+  Torque: Zap,
+  Consumption: Fuel,
+  Colour: Palette,
+  Registration: Tag,
+};
 
 export default function VehicleDetail() {
   const [, params] = useRoute("/inventory/:id");
-  const vehicle = useMemo(() => vehicles.find(item => item.id === params?.id) ?? vehicles[0], [params?.id]);
-  useEffect(() => { window.scrollTo(0, 0); }, [params?.id]);
-  const [activeImage, setActiveImage] = useState(vehicle.image);
+  const { data: vehicle, loading, error } = useVehicle(params?.id);
+  const images = useMemo(() => vehicle?.images ?? [], [vehicle?.images]);
+  const primaryKey = useMemo(
+    () => images.find(i => i.isPrimary)?.objectKey ?? images[0]?.objectKey,
+    [images]
+  );
+  const [activeKey, setActiveKey] = useState<string>("");
+  useEffect(() => {
+    setActiveKey(primaryKey ?? "");
+  }, [primaryKey]);
+  const relatedFilters: VehicleFilters = vehicle?.body
+    ? { body: vehicle.body, limit: 8 }
+    : { limit: 0 };
+  const { data: relatedVehicles } = useVehicles(relatedFilters);
+  const related = useMemo(
+    () =>
+      (relatedVehicles ?? [])
+        .filter(item => item.id !== vehicle?.id)
+        .slice(0, 2),
+    [relatedVehicles, vehicle?.id]
+  );
   const [dialog, setDialog] = useState<"reserve" | "viewing" | null>(null);
   const [submitted, setSubmitted] = useState(false);
-  const related = useMemo(() => vehicles.filter(item => item.id !== vehicle.id && item.body === vehicle.body).slice(0, 2), [vehicle.id, vehicle.body]);
-  const whatsapp = `https://wa.me/254700000000?text=${encodeURIComponent(`Hi Zara Cars, I'm interested in ${vehicle.year} ${vehicle.make} ${vehicle.model} (${vehicle.stockNo}).`)}`;
-const specIcons: Record<string, typeof Settings> = { Drive: Settings, Seats: User, Doors: DoorClosed, Power: Zap, Torque: Zap, Consumption: Fuel, Colour: Palette, Registration: Tag };
-const briefIcons: Record<string, typeof Settings> = { Segment: Tag, Engine: Settings, Fuel: Fuel, Transmission: Settings, Mileage: Gauge, Colour: Palette, Seller: User, "Last updated": CalendarDays };
 
-  return <PageFrame><div className="original-detail-wrap"><Link href="/inventory" className="original-back-link"><ArrowLeft size={16} /> Back to inventory</Link><div className="original-detail-grid"><section><div className="original-main-image-wrap"><img src={activeImage} alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`} /><div className="original-image-badges"><StatusPill status={vehicle.status} /><span className="original-stock-tag">{vehicle.stockNo}</span></div><div className="original-star-rating">{[...Array(5)].map((_, i) => <Star key={i} size={16} fill={i < vehicle.rating ? "currentColor" : "none"} />)}</div></div><div className="original-gallery-strip">{vehicle.gallery.map((item, index) => <button key={item.src} onClick={() => setActiveImage(item.src)} className={activeImage === item.src ? "active" : ""} aria-label={`View ${item.label} photo`} title={item.label}><img src={item.src} alt="" /><span>{item.label}</span></button>)}</div><div className="original-video-card"><div className="original-video-head"><span className="original-video-icon"><Play size={20} /></span><div><strong>Video walkaround</strong><p>30–60s walkaround of this exact vehicle.</p></div><button className="button button-dark" onClick={() => alert("Video player would open here.")}>Play</button></div><div className="original-video-placeholder"><img src={vehicle.image} alt="" /><div className="original-video-overlay" /><Play size={48} /></div></div></section><section className="original-detail-info"><div className="original-detail-heading"><p className="original-kicker-red">{vehicle.year} · {vehicle.make}</p><h1>{vehicle.model}</h1><p>{vehicle.trim} · {vehicle.color} · {vehicle.location}</p></div><div className="original-price-section"><p className="original-price-label">Drive-away price</p><strong className="original-price-value">{money(vehicle.price)}</strong><p className="original-finance-note">Finance from <span className="red-text">{money(vehicle.monthly)} / month</span> · {money(Math.round(vehicle.price * 0.2))} suggested deposit</p><p className="original-brief-copy" style={{ marginTop: "14px" }}>{vehicle.description}</p></div><div className="original-quick-specs"><div><Gauge size={20} /><strong>{vehicle.mileage.toLocaleString()} km</strong><small>driven</small></div><div><Fuel size={20} /><strong>{vehicle.engine}</strong><small>engine</small></div><div><Settings size={20} /><strong>{vehicle.transmission}</strong><small>gearbox</small></div></div><div className="original-spec-table">{Object.entries(vehicle.specs).map(([label, value]) => { const Icon = specIcons[label] ?? Settings; return <div key={label}><Icon size={18} /><small>{label}</small><strong>{value}</strong></div>; })}</div><div className="original-detail-actions"><button className="button button-red wide" onClick={() => { setDialog("reserve"); setSubmitted(false); }}>Reserve with M-Pesa <ArrowRight size={18} /></button><a href={whatsapp} target="_blank" rel="noreferrer" className="original-whatsapp-wide"><MessageCircle size={18} /> Chat on WhatsApp</a><button className="original-viewing-link" onClick={() => { setDialog("viewing"); setSubmitted(false); }}><CalendarDays size={16} /> Book a viewing at {vehicle.location}</button><button className="original-pdf-link" onClick={() => downloadVehicleOverview(vehicle)}><Download size={16} /> Download vehicle overview PDF</button></div></section></div><section className="original-trust-grid"><div className="original-trust-dark"><p className="original-kicker-red">The Zara standard</p><h2>Buy it with your eyes open.</h2><p>We show the paperwork, the condition, and the complete number before you commit.</p><div className="original-trust-checks">{vehicle.verification.map(item => <div key={item}><Check size={16} /> {item}</div>)}</div></div><div className="original-trust-light"><div className="original-report-head"><span className="original-report-icon"><FileCheck2 size={22} /></span><div><strong>Condition report on file</strong><p>Last updated {vehicle.updated}</p></div></div><p className="original-report-copy">{vehicle.description}</p><div className="original-feature-grid">{vehicle.features.map(item => <div key={item}><BadgeCheck size={20} /> {item}</div>)}</div><div className="original-report-footer"><MapPin size={16} /> {vehicle.location} · Walkarounds available on WhatsApp</div></div></section><section className="original-related-section"><div className="original-related-head"><div><p className="original-kicker-red">Keep looking</p><h2>Similar cars</h2></div><Link href="/inventory" className="text-link">View all <ArrowRight size={16} /></Link></div><div className="original-related-grid">{related.map(item => <Link key={item.id} href={`/inventory/${item.id}`} className="original-related-card"><img src={item.image} alt={`${item.year} ${item.make} ${item.model}`} loading="lazy" /><div><StatusPill status={item.status} /><h3>{item.year} {item.make} {item.model}</h3><strong>{money(item.price)}</strong></div></Link>)}</div></section></div>{dialog && <div className="modal-backdrop" onMouseDown={() => setDialog(null)} role="dialog" aria-modal="true" aria-label={dialog === "reserve" ? "Reserve this car" : "Book a viewing"}><div className="modal-card" onMouseDown={e => e.stopPropagation()}><button className="modal-close" onClick={() => setDialog(null)} aria-label="Close"><X size={18} /></button>{submitted ? <div className="modal-success"><span><Check size={28} /></span><h2>You're on the list.</h2><p>A Zara Cars specialist will WhatsApp you shortly to confirm the next step.</p><button className="button button-dark" onClick={() => setDialog(null)}>Done</button></div> : <div className="original-dialog-form"><div className="original-dialog-head"><span className="original-dialog-icon">{dialog === "reserve" ? <ShieldCheck size={22} /> : <CalendarDays size={22} />}</span><h2>{dialog === "reserve" ? "Reserve this car" : "Book a viewing"}</h2><p>{dialog === "reserve" ? "Lock the car for 48 hours with a refundable KES 10,000 deposit. We'll send an M-Pesa prompt to your phone." : `Choose a convenient time to see the ${vehicle.make} ${vehicle.model} at ${vehicle.location}.`}</p></div><div className="original-dialog-fields"><label htmlFor="buyer-name">Your name<input id="buyer-name" type="text" placeholder="e.g. Wanjiku Kamau" /></label><label htmlFor="buyer-phone">M-Pesa / WhatsApp number<input id="buyer-phone" type="tel" placeholder="07XX XXX XXX" /></label>{dialog === "viewing" && <label>Preferred time<select><option>Saturday · 10:00 – 11:00</option><option>Saturday · 14:00 – 15:00</option><option>Weekday · 16:00 – 17:00</option></select></label>}<button className="button button-red wide" onClick={() => setSubmitted(true)}>{dialog === "reserve" ? "Continue to M-Pesa" : "Request viewing"} <ArrowRight size={18} /></button><p className="original-dialog-note">Prototype flow · no payment is processed in this demo.</p></div></div>}</div></div>}</PageFrame>;
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [params?.id]);
+
+  if (loading) {
+    return (
+      <PageFrame>
+        <div className="original-detail-wrap">
+          <div className="detail-loading" aria-live="polite">
+            Loading vehicle…
+          </div>
+        </div>
+      </PageFrame>
+    );
+  }
+  if (error || !vehicle) {
+    return (
+      <PageFrame>
+        <div className="original-detail-wrap">
+          <Link href="/inventory" className="original-back-link">
+            <ArrowLeft size={16} /> Back to inventory
+          </Link>
+          <div className="empty-state">
+            <FileCheck2 size={28} />
+            <h3>Vehicle not found</h3>
+            <p>
+              The unit you are looking for does not exist or has been removed.
+            </p>
+            <Link href="/inventory" className="text-link">
+              Return to inventory <ArrowRight size={16} />
+            </Link>
+          </div>
+        </div>
+      </PageFrame>
+    );
+  }
+
+  const whatsapp = whatsAppUrl(
+    `Hi Zara Cars, I'm interested in ${vehicle.year} ${vehicle.make} ${vehicle.model} (${vehicle.stockNo}).`
+  );
+
+  return (
+    <PageFrame>
+      <div className="original-detail-wrap">
+        <Link href="/inventory" className="original-back-link">
+          <ArrowLeft size={16} /> Back to inventory
+        </Link>
+        <div className="original-detail-grid">
+          <section>
+            <div className="original-main-image-wrap">
+              <VehicleImage
+                objectKey={activeKey || undefined}
+                publicUrl={activeKey ? undefined : vehicle.image}
+                profile="vehicle-detail"
+                alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+                className="original-main-image"
+              />
+              <div className="original-image-badges">
+                <StatusPill status={vehicle.status} />
+                <span className="original-stock-tag">{vehicle.stockNo}</span>
+              </div>
+              <div className="original-star-rating">
+                {[...Array(5)].map((_, i) => (
+                  <Star
+                    key={i}
+                    size={16}
+                    fill={i < vehicle.rating ? "currentColor" : "none"}
+                  />
+                ))}
+              </div>
+            </div>
+            {images.length > 0 && (
+              <div className="original-gallery-strip">
+                {images.map(img => (
+                  <button
+                    key={img.id}
+                    onClick={() => setActiveKey(img.objectKey)}
+                    className={activeKey === img.objectKey ? "active" : ""}
+                    aria-label={`View ${img.altText || "photo"}`}
+                    title={img.altText || "photo"}
+                  >
+                    <VehicleImage
+                      objectKey={img.objectKey}
+                      profile="vehicle-gallery-thumb"
+                      alt={img.altText || ""}
+                    />
+                    {img.altText ? <span>{img.altText}</span> : null}
+                  </button>
+                ))}
+              </div>
+            )}
+            <div className="original-video-card">
+              <div className="original-video-head">
+                <span className="original-video-icon">
+                  <Play size={20} />
+                </span>
+                <div>
+                  <strong>Video walkaround</strong>
+                  <p>30–60s walkaround of this exact vehicle.</p>
+                </div>
+                <button
+                  className="button button-dark"
+                  onClick={() => alert("Video player would open here.")}
+                >
+                  Play
+                </button>
+              </div>
+              <div className="original-video-placeholder">
+                <VehicleImage
+                  publicUrl={vehicle.image}
+                  profile="vehicle-detail"
+                  alt=""
+                  className="original-video-placeholder-img"
+                />
+                <div className="original-video-overlay" />
+                <Play size={48} />
+              </div>
+            </div>
+          </section>
+          <section className="original-detail-info">
+            <div className="original-detail-heading">
+              <p className="original-kicker-red">
+                {vehicle.year} · {vehicle.make}
+              </p>
+              <h1>{vehicle.model}</h1>
+              <p>
+                {vehicle.variant} · {vehicle.color} · {vehicle.location}
+              </p>
+            </div>
+            <div className="original-price-section">
+              <p className="original-price-label">Drive-away price</p>
+              <strong className="original-price-value">
+                {money(vehicle.price)}
+              </strong>
+              <p className="original-finance-note">
+                Finance from{" "}
+                <span className="red-text">
+                  {money(vehicle.monthly)} / month
+                </span>{" "}
+                · {money(Math.round(vehicle.price * 0.2))} suggested deposit
+              </p>
+              <p className="original-brief-copy" style={{ marginTop: "14px" }}>
+                {vehicle.description}
+              </p>
+            </div>
+            <div className="original-quick-specs">
+              <div>
+                <Gauge size={20} />
+                <strong>{vehicle.mileage.toLocaleString()} km</strong>
+                <small>driven</small>
+              </div>
+              <div>
+                <Fuel size={20} />
+                <strong>{vehicle.engine}</strong>
+                <small>engine</small>
+              </div>
+              <div>
+                <Settings size={20} />
+                <strong>{vehicle.transmission}</strong>
+                <small>gearbox</small>
+              </div>
+            </div>
+            <div className="original-spec-table">
+              {Object.entries(vehicle.specs).map(([label, value]) => {
+                const Icon = specIcons[label] ?? Settings;
+                return (
+                  <div key={label}>
+                    <Icon size={18} />
+                    <small>{label}</small>
+                    <strong>{value}</strong>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="original-detail-actions">
+              <button
+                className="button button-red wide"
+                onClick={() => {
+                  setDialog("reserve");
+                  setSubmitted(false);
+                }}
+              >
+                Reserve with M-Pesa <ArrowRight size={18} />
+              </button>
+              <a
+                href={whatsapp}
+                target="_blank"
+                rel="noreferrer"
+                className="original-whatsapp-wide"
+              >
+                <MessageCircle size={18} /> Chat on WhatsApp
+              </a>
+              <button
+                className="original-viewing-link"
+                onClick={() => {
+                  setDialog("viewing");
+                  setSubmitted(false);
+                }}
+              >
+                <CalendarDays size={16} /> Book a viewing at {vehicle.location}
+              </button>
+              <button
+                className="original-pdf-link"
+                onClick={() => downloadVehicleOverview(vehicle)}
+              >
+                <Download size={16} /> Download vehicle overview PDF
+              </button>
+            </div>
+          </section>
+        </div>
+        <section className="original-trust-grid">
+          <div className="original-trust-dark">
+            <p className="original-kicker-red">The Zara standard</p>
+            <h2>Buy it with your eyes open.</h2>
+            <p>
+              We show the paperwork, the condition, and the complete number
+              before you commit.
+            </p>
+            <div className="original-trust-checks">
+              {vehicle.verification.map(item => (
+                <div key={item}>
+                  <Check size={16} /> {item}
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="original-trust-light">
+            <div className="original-report-head">
+              <span className="original-report-icon">
+                <FileCheck2 size={22} />
+              </span>
+              <div>
+                <strong>Condition report on file</strong>
+                <p>Last updated {vehicle.updated}</p>
+              </div>
+            </div>
+            <p className="original-report-copy">{vehicle.description}</p>
+            <div className="original-feature-grid">
+              {vehicle.features.map(item => (
+                <div key={item}>
+                  <BadgeCheck size={20} /> {item}
+                </div>
+              ))}
+            </div>
+            <div className="original-report-footer">
+              <MapPin size={16} /> {vehicle.location} · Walkarounds available on
+              WhatsApp
+            </div>
+          </div>
+        </section>
+        <section className="original-related-section">
+          <div className="original-related-head">
+            <div>
+              <p className="original-kicker-red">Keep looking</p>
+              <h2>Similar cars</h2>
+            </div>
+            <Link href="/inventory" className="text-link">
+              View all <ArrowRight size={16} />
+            </Link>
+          </div>
+          <div className="original-related-grid">
+            {related.map(item => (
+              <Link
+                key={item.id}
+                href={`/inventory/${item.id}`}
+                className="original-related-card"
+              >
+                <VehicleImage
+                  objectKey={
+                    item.images?.find(i => i.isPrimary)?.objectKey ??
+                    item.images?.[0]?.objectKey
+                  }
+                  publicUrl={item.image}
+                  profile="vehicle-thumb"
+                  alt={`${item.year} ${item.make} ${item.model}`}
+                />
+                <div>
+                  <StatusPill status={item.status} />
+                  <h3>
+                    {item.year} {item.make} {item.model}
+                  </h3>
+                  <strong>{money(item.price)}</strong>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      </div>
+      {dialog && (
+        <div
+          className="modal-backdrop"
+          onMouseDown={() => setDialog(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-label={
+            dialog === "reserve" ? "Reserve this car" : "Book a viewing"
+          }
+        >
+          <div className="modal-card" onMouseDown={e => e.stopPropagation()}>
+            <button
+              className="modal-close"
+              onClick={() => setDialog(null)}
+              aria-label="Close"
+            >
+              <X size={18} />
+            </button>
+            {submitted ? (
+              <div className="modal-success">
+                <span>
+                  <Check size={28} />
+                </span>
+                <h2>You're on the list.</h2>
+                <p>
+                  A Zara Cars specialist will WhatsApp you shortly to confirm
+                  the next step.
+                </p>
+                <button
+                  className="button button-dark"
+                  onClick={() => setDialog(null)}
+                >
+                  Done
+                </button>
+              </div>
+            ) : (
+              <div className="original-dialog-form">
+                <div className="original-dialog-head">
+                  <span className="original-dialog-icon">
+                    {dialog === "reserve" ? (
+                      <ShieldCheck size={22} />
+                    ) : (
+                      <CalendarDays size={22} />
+                    )}
+                  </span>
+                  <h2>
+                    {dialog === "reserve"
+                      ? "Reserve this car"
+                      : "Book a viewing"}
+                  </h2>
+                  <p>
+                    {dialog === "reserve"
+                      ? "Lock the car for 48 hours with a refundable KES 10,000 deposit. We'll send an M-Pesa prompt to your phone."
+                      : `Choose a convenient time to see the ${vehicle.make} ${vehicle.model} at ${vehicle.location}.`}
+                  </p>
+                </div>
+                <div className="original-dialog-fields">
+                  <label htmlFor="buyer-name">
+                    Your name
+                    <input
+                      id="buyer-name"
+                      type="text"
+                      placeholder="e.g. Wanjiku Kamau"
+                    />
+                  </label>
+                  <label htmlFor="buyer-phone">
+                    M-Pesa / WhatsApp number
+                    <input
+                      id="buyer-phone"
+                      type="tel"
+                      placeholder="07XX XXX XXX"
+                    />
+                  </label>
+                  {dialog === "viewing" && (
+                    <label>
+                      Preferred time
+                      <select>
+                        <option>Saturday · 10:00 – 11:00</option>
+                        <option>Saturday · 14:00 – 15:00</option>
+                        <option>Weekday · 16:00 – 17:00</option>
+                      </select>
+                    </label>
+                  )}
+                  <button
+                    className="button button-red wide"
+                    onClick={() => setSubmitted(true)}
+                  >
+                    {dialog === "reserve"
+                      ? "Continue to M-Pesa"
+                      : "Request viewing"}{" "}
+                    <ArrowRight size={18} />
+                  </button>
+                  <p className="original-dialog-note">
+                    Prototype flow · no payment is processed in this demo.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </PageFrame>
+  );
 }

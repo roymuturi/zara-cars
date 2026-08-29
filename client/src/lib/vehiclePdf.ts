@@ -1,6 +1,6 @@
 import { jsPDF } from "jspdf";
 import QRCode from "qrcode";
-import type { Vehicle } from "@/lib/stock";
+import type { Vehicle } from "@/data/vehicles/vehicle.types";
 
 const navy = "#0a1728";
 const red = "#d92f3d";
@@ -8,10 +8,21 @@ const muted = "#667585";
 const line = "#dce5ea";
 
 function slugify(value: string) {
-  return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
 }
 
-function addWrapped(doc: jsPDF, text: string, x: number, y: number, width: number, size = 10, color = muted) {
+function addWrapped(
+  doc: jsPDF,
+  text: string,
+  x: number,
+  y: number,
+  width: number,
+  size = 10,
+  color = muted
+) {
   doc.setFontSize(size);
   doc.setTextColor(color);
   const lines = doc.splitTextToSize(text, width) as string[];
@@ -29,7 +40,9 @@ async function imageToJpeg(src: string) {
       const ratio = Math.min(1, 1200 / bitmap.width);
       canvas.width = Math.max(1, Math.round(bitmap.width * ratio));
       canvas.height = Math.max(1, Math.round(bitmap.height * ratio));
-      canvas.getContext("2d")?.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+      canvas
+        .getContext("2d")
+        ?.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
       bitmap.close();
       return canvas.toDataURL("image/jpeg", 0.86);
     }
@@ -48,7 +61,11 @@ export async function downloadVehicleOverview(vehicle: Vehicle) {
   const listingUrl = `${window.location.origin}/inventory/${vehicle.id}`;
   const [mainImage, qrCode] = await Promise.all([
     imageToJpeg(vehicle.image),
-    QRCode.toDataURL(listingUrl, { margin: 1, width: 256, color: { dark: navy, light: "#ffffff" } }).catch(() => null),
+    QRCode.toDataURL(listingUrl, {
+      margin: 1,
+      width: 256,
+      color: { dark: navy, light: "#ffffff" },
+    }).catch(() => null),
   ]);
   const doc = new jsPDF({ unit: "pt", format: "a4" });
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -76,11 +93,22 @@ export async function downloadVehicleOverview(vehicle: Vehicle) {
   doc.setFillColor("#edf3f6");
   doc.roundedRect(imageX, imageY, 220, 142, 12, 12, "F");
   if (mainImage) {
-    doc.addImage(mainImage, "JPEG", imageX + 5, imageY + 5, 210, 132, undefined, "FAST");
+    doc.addImage(
+      mainImage,
+      "JPEG",
+      imageX + 5,
+      imageY + 5,
+      210,
+      132,
+      undefined,
+      "FAST"
+    );
   } else {
     doc.setTextColor(muted);
     doc.setFontSize(9);
-    doc.text("Vehicle image unavailable", imageX + 110, imageY + 74, { align: "center" });
+    doc.text("Vehicle image unavailable", imageX + 110, imageY + 74, {
+      align: "center",
+    });
   }
   doc.setTextColor(red);
   doc.setFont("helvetica", "bold");
@@ -94,7 +122,15 @@ export async function downloadVehicleOverview(vehicle: Vehicle) {
   doc.setTextColor(red);
   doc.text(vehicle.model, margin, y);
   y += 18;
-  y = addWrapped(doc, `${vehicle.trim} · ${vehicle.color} · ${vehicle.location}`, margin, y + 12, imageX - margin - 18, 10, muted);
+  y = addWrapped(
+    doc,
+    `${vehicle.variant} · ${vehicle.color} · ${vehicle.location}`,
+    margin,
+    y + 12,
+    imageX - margin - 18,
+    10,
+    muted
+  );
 
   y = Math.max(y + 18, imageY + 164);
   doc.setFillColor("#edf3f6");
@@ -109,7 +145,12 @@ export async function downloadVehicleOverview(vehicle: Vehicle) {
   doc.setTextColor(muted);
   doc.setFontSize(9);
   doc.text(vehicle.status, pageWidth - margin - 18, y + 30, { align: "right" });
-  doc.text(`KES ${vehicle.monthly.toLocaleString()} / month estimate`, pageWidth - margin - 18, y + 49, { align: "right" });
+  doc.text(
+    `KES ${vehicle.monthly.toLocaleString()} / month estimate`,
+    pageWidth - margin - 18,
+    y + 49,
+    { align: "right" }
+  );
 
   y += 110;
   doc.setTextColor(navy);
@@ -147,7 +188,15 @@ export async function downloadVehicleOverview(vehicle: Vehicle) {
   doc.setFontSize(13);
   doc.text("Key features", margin, y);
   y += 18;
-  y = addWrapped(doc, vehicle.features.join("  ·  "), margin, y, pageWidth - margin * 2, 10, muted);
+  y = addWrapped(
+    doc,
+    vehicle.features.join("  ·  "),
+    margin,
+    y,
+    pageWidth - margin * 2,
+    10,
+    muted
+  );
 
   y += 24;
   doc.setFillColor("#f8e3e5");
@@ -159,17 +208,43 @@ export async function downloadVehicleOverview(vehicle: Vehicle) {
   doc.setTextColor(navy);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
-  doc.text("Zara Cars Kenya  ·  +254 700 000 000  ·  hello@zaracars.co.ke", margin + 18, y + 42);
-  doc.text(`${vehicle.location}  ·  Nairobi viewings by appointment  ·  WhatsApp available`, margin + 18, y + 59);
+  doc.text(
+    "Zara Cars Kenya  ·  +254 700 000 000  ·  hello@zaracars.co.ke",
+    margin + 18,
+    y + 42
+  );
+  doc.text(
+    `${vehicle.location}  ·  Nairobi viewings by appointment  ·  WhatsApp available`,
+    margin + 18,
+    y + 59
+  );
   doc.setTextColor(muted);
   doc.setFontSize(7);
-  doc.text("Scan to open this listing", pageWidth - margin - 51, y + 83, { align: "center" });
-  if (qrCode) doc.addImage(qrCode, "PNG", pageWidth - margin - 83, y + 9, 64, 64, undefined, "FAST");
+  doc.text("Scan to open this listing", pageWidth - margin - 51, y + 83, {
+    align: "center",
+  });
+  if (qrCode)
+    doc.addImage(
+      qrCode,
+      "PNG",
+      pageWidth - margin - 83,
+      y + 9,
+      64,
+      64,
+      undefined,
+      "FAST"
+    );
 
   doc.setDrawColor(line);
   doc.line(margin, 770, pageWidth - margin, 770);
   doc.setTextColor(muted);
   doc.setFontSize(8);
-  doc.text(`Prepared ${new Date().toLocaleDateString("en-KE")} · Prices and availability subject to confirmation.`, margin, 790);
-  doc.save(`${slugify(`${vehicle.year}-${vehicle.make}-${vehicle.model}`)}-zara-cars-overview.pdf`);
+  doc.text(
+    `Prepared ${new Date().toLocaleDateString("en-KE")} · Prices and availability subject to confirmation.`,
+    margin,
+    790
+  );
+  doc.save(
+    `${slugify(`${vehicle.year}-${vehicle.make}-${vehicle.model}`)}-zara-cars-overview.pdf`
+  );
 }

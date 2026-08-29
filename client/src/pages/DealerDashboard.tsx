@@ -1,170 +1,2093 @@
 // Liquid Safari reminder: the dealer workspace is a calm stock cockpit—one dominant operational panel, crisp status capsules, and actions that name the next move.
 import { useMemo, useState, type FormEvent } from "react";
-import { Archive, ArrowRight, BadgeCheck, BarChart3, Bell, CalendarDays, CarFront, Check, ChevronRight, CircleDollarSign, Clock3, Copy, FileText, Gauge, LayoutDashboard, ListPlus, MapPin, Menu, MessageCircle, PackageCheck, Plus, Search, Settings2, ShieldCheck, Sparkles, Tag, TrendingUp, Truck, UserRound, Users, X } from "lucide-react";
+import {
+  Archive,
+  ArrowRight,
+  BadgeCheck,
+  BarChart3,
+  Bell,
+  CalendarDays,
+  CarFront,
+  Check,
+  ChevronRight,
+  CircleDollarSign,
+  Clock3,
+  Copy,
+  FileText,
+  Gauge,
+  LayoutDashboard,
+  ListPlus,
+  MapPin,
+  Menu,
+  MessageCircle,
+  PackageCheck,
+  Plus,
+  Search,
+  Settings2,
+  ShieldCheck,
+  Sparkles,
+  Tag,
+  TrendingUp,
+  Truck,
+  UserRound,
+  Users,
+  X,
+} from "lucide-react";
 import { Link } from "wouter";
-import { AmbientBackground, Logo, StatusPill, ThemeToggle } from "@/components/SiteChrome";
-import { compactMoney, financeRequests, leads, money, reservations, sales, staff, tradeIns, vehicles, type Vehicle, type VehicleStatus } from "@/lib/stock";
+import {
+  AmbientBackground,
+  Logo,
+  StatusPill,
+  ThemeToggle,
+} from "@/components/SiteChrome";
+import { money } from "@/lib/formatters";
+import {
+  financeRequests,
+  leads,
+  reservations,
+  sales,
+  staff,
+  tradeIns,
+  mockVehicles,
+} from "@/lib/mockData";
+import type { Vehicle, VehicleStatus } from "@/data/vehicles/vehicle.types";
+import { STATUS_TONE, STATUS_LABELS } from "@/data/vehicles/vehicle.types";
 
-type ViewKey = "overview" | "stock" | "leads" | "reservations" | "trade-ins" | "finance" | "sales" | "team";
-const navItems: { key: ViewKey; label: string; icon: typeof LayoutDashboard }[] = [
-  { key: "overview", label: "Overview", icon: LayoutDashboard }, { key: "stock", label: "Stock desk", icon: CarFront }, { key: "leads", label: "Leads", icon: Users }, { key: "reservations", label: "Reservations", icon: Clock3 }, { key: "trade-ins", label: "Trade-ins", icon: Truck }, { key: "finance", label: "Finance matches", icon: CircleDollarSign }, { key: "sales", label: "Sales", icon: BarChart3 }, { key: "team", label: "Team", icon: UserRound },
+type ViewKey =
+  | "overview"
+  | "stock"
+  | "leads"
+  | "reservations"
+  | "trade-ins"
+  | "finance"
+  | "sales"
+  | "team";
+const navItems: {
+  key: ViewKey;
+  label: string;
+  icon: typeof LayoutDashboard;
+}[] = [
+  { key: "overview", label: "Overview", icon: LayoutDashboard },
+  { key: "stock", label: "Stock desk", icon: CarFront },
+  { key: "leads", label: "Leads", icon: Users },
+  { key: "reservations", label: "Reservations", icon: Clock3 },
+  { key: "trade-ins", label: "Trade-ins", icon: Truck },
+  { key: "finance", label: "Finance matches", icon: CircleDollarSign },
+  { key: "sales", label: "Sales", icon: BarChart3 },
+  { key: "team", label: "Team", icon: UserRound },
 ];
-const statusOptions: VehicleStatus[] = ["Ready to view", "Duty paid", "Reserved", "In transit", "Clearing"];
-const featureOptions = ["Panoramic sunroof", "Leather seats", "360 camera", "Apple CarPlay", "Adaptive cruise", "Reverse camera", "Roof rails", "LED headlights", "4WD low range", "Tow bar", "Alloy rims", "Push start", "Keyless entry", "Hybrid drive", "Blind spot monitor", "Parking sensors", "Heated seats", "Lane assist", "Power tailgate", "Digital cockpit"];
-const verificationOptions = ["Duty paid and verified", "Independent inspection welcome", "Price includes registration", "Japan auction sheet on file", "Full service history", "Accident-free", "108-point condition check"];
+const statusOptions: VehicleStatus[] = [
+  "available",
+  "duty_paid",
+  "reserved",
+  "in_transit",
+  "clearing",
+  "sold",
+];
+const featureOptions = [
+  "Panoramic sunroof",
+  "Leather seats",
+  "360 camera",
+  "Apple CarPlay",
+  "Adaptive cruise",
+  "Reverse camera",
+  "Roof rails",
+  "LED headlights",
+  "4WD low range",
+  "Tow bar",
+  "Alloy rims",
+  "Push start",
+  "Keyless entry",
+  "Hybrid drive",
+  "Blind spot monitor",
+  "Parking sensors",
+  "Heated seats",
+  "Lane assist",
+  "Power tailgate",
+  "Digital cockpit",
+];
+const verificationOptions = [
+  "Duty paid and verified",
+  "Independent inspection welcome",
+  "Price includes registration",
+  "Japan auction sheet on file",
+  "Full service history",
+  "Accident-free",
+  "108-point condition check",
+];
 const roleOptions = ["Admin", "Sales", "Yard / Ops"];
 const branchOptions = ["Nairobi", "Mombasa", "Kisumu"];
 
-type StaffMember = { id: string; name: string; email: string; role: string; branch: string; password: string; status?: string; sales?: number; response?: string; };
-type Lead = { id: string; name: string; vehicle: string; source: string; status: string; time: string; initials: string };
-type Reservation = { id: string; vehicle: string; buyer: string; amount: number; expires: string; status: string };
-type TradeIn = { id: string; name: string; vehicle: string; estimate: string; source: string; status: string; time: string };
-type FinanceRequest = { id: string; name: string; employment: string; budget: string; vehicle: string; partner: string; status: string; time: string };
+type StaffMember = {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  branch: string;
+  password: string;
+  status?: string;
+  sales?: number;
+  response?: string;
+};
+type Lead = {
+  id: string;
+  name: string;
+  vehicle: string;
+  source: string;
+  status: string;
+  time: string;
+  initials: string;
+};
+type Reservation = {
+  id: string;
+  vehicle: string;
+  buyer: string;
+  amount: number;
+  expires: string;
+  status: string;
+};
+type TradeIn = {
+  id: string;
+  name: string;
+  vehicle: string;
+  estimate: string;
+  source: string;
+  status: string;
+  time: string;
+};
+type FinanceRequest = {
+  id: string;
+  name: string;
+  employment: string;
+  budget: string;
+  vehicle: string;
+  partner: string;
+  status: string;
+  time: string;
+};
 
-function Metric({ label, value, change, icon: Icon, tone }: { label: string; value: string; change: string; icon: typeof Gauge; tone: string }) { return <div className="dealer-metric"><span className={`dealer-metric-icon ${tone}`}><Icon size={18} /></span><div><small>{label}</small><strong>{value}</strong><span className="metric-change">{change}</span></div></div>; }
+function Metric({
+  label,
+  value,
+  change,
+  icon: Icon,
+  tone,
+}: {
+  label: string;
+  value: string;
+  change: string;
+  icon: typeof Gauge;
+  tone: string;
+}) {
+  return (
+    <div className="dealer-metric">
+      <span className={`dealer-metric-icon ${tone}`}>
+        <Icon size={18} />
+      </span>
+      <div>
+        <small>{label}</small>
+        <strong>{value}</strong>
+        <span className="metric-change">{change}</span>
+      </div>
+    </div>
+  );
+}
 
-function SectionHeading({ eyebrow, title, action, onAction }: { eyebrow: string; title: string; action?: string; onAction?: () => void }) { return <div className="dealer-section-heading"><div><p className="section-kicker">{eyebrow}</p><h2>{title}</h2></div>{action && <button className="button button-red" onClick={onAction}>{action} <Plus size={15} /></button>}</div>; }
+function SectionHeading({
+  eyebrow,
+  title,
+  action,
+  onAction,
+}: {
+  eyebrow: string;
+  title: string;
+  action?: string;
+  onAction?: () => void;
+}) {
+  return (
+    <div className="dealer-section-heading">
+      <div>
+        <p className="section-kicker">{eyebrow}</p>
+        <h2>{title}</h2>
+      </div>
+      {action && (
+        <button className="button button-red" onClick={onAction}>
+          {action} <Plus size={15} />
+        </button>
+      )}
+    </div>
+  );
+}
 
-function StatusTag({ label }: { label: string }) { const tone = label === "New" || label === "Active" || label === "Completed" || label === "Ready to view" ? "green" : label === "Matched" || label === "Duty paid" ? "blue" : label === "Pending" || label === "Reviewing" || label === "Clearing" ? "amber" : "slate"; return <span className={`status-pill ${tone}`}><span className="status-dot" />{label}</span>; }
+function StatusTag({ label }: { label: string }) {
+  const tone =
+    label === "New" ||
+    label === "Active" ||
+    label === "Completed" ||
+    label === "Ready to view"
+      ? "green"
+      : label === "Matched" || label === "Duty paid"
+        ? "blue"
+        : label === "Pending" || label === "Reviewing" || label === "Clearing"
+          ? "amber"
+          : "slate";
+  return (
+    <span className={`status-pill ${tone}`}>
+      <span className="status-dot" />
+      {label}
+    </span>
+  );
+}
 
 export default function DealerDashboard() {
   const [view, setView] = useState<ViewKey>("overview");
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const [stock, setStock] = useState<Vehicle[]>(vehicles);
+  const [stock, setStock] = useState<Vehicle[]>(mockVehicles);
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("All status");
   const [modalOpen, setModalOpen] = useState(false);
   const [editVehicle, setEditVehicle] = useState<Vehicle | null>(null);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [team, setTeam] = useState<StaffMember[]>([...staff.map((s, i) => ({ id: s.id, name: s.name, email: `${s.name.toLowerCase().replace(/ /g, ".")}@zaracars.co.ke`, role: s.role, branch: s.branch, password: "zara" + (i + 1) + "pass" }))]);
-  const [newStaff, setNewStaff] = useState({ name: "", email: "", role: "Sales", branch: "Nairobi", password: "" });
+  const [team, setTeam] = useState<StaffMember[]>([
+    ...staff.map((s, i) => ({
+      id: s.id,
+      name: s.name,
+      email: `${s.name.toLowerCase().replace(/ /g, ".")}@zaracars.co.ke`,
+      role: s.role,
+      branch: s.branch,
+      password: "zara" + (i + 1) + "pass",
+    })),
+  ]);
+  const [newStaff, setNewStaff] = useState({
+    name: "",
+    email: "",
+    role: "Sales",
+    branch: "Nairobi",
+    password: "",
+  });
   const [notice, setNotice] = useState("");
   const [featuredCarReminder, setFeaturedCarReminder] = useState(false);
-  const [todayIsSunday] = useState(new Date().getDay() === 0 && !localStorage.getItem("featuredCarSet"));
+  const [todayIsSunday] = useState(
+    new Date().getDay() === 0 && !localStorage.getItem("featuredCarSet")
+  );
   const [leadDetail, setLeadDetail] = useState<Lead | null>(null);
-  const [reservationDetail, setReservationDetail] = useState<Reservation | null>(null);
+  const [reservationDetail, setReservationDetail] =
+    useState<Reservation | null>(null);
   const [tradeInDetail, setTradeInDetail] = useState<TradeIn | null>(null);
-  const [financeDetail, setFinanceDetail] = useState<FinanceRequest | null>(null);
+  const [financeDetail, setFinanceDetail] = useState<FinanceRequest | null>(
+    null
+  );
   const timeLabel = useMemo(() => {
     const d = new Date();
-    const nairobi = d.toLocaleString("en-KE", { timeZone: "Africa/Nairobi", weekday: "long", day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: true });
+    const nairobi = d.toLocaleString("en-KE", {
+      timeZone: "Africa/Nairobi",
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
     return `${nairobi} · Nairobi`;
   }, []);
-  const counts = { all: stock.length, ready: stock.filter(item => item.status === "Ready to view").length, moving: stock.filter(item => item.status === "In transit" || item.status === "Clearing").length, reserved: stock.filter(item => item.status === "Reserved").length };
-  const showView = (next: ViewKey) => { setView(next); setMobileNavOpen(false); window.history.replaceState({}, "", `/dealer?view=${next}`); };
-  const toast = (text: string) => { setNotice(text); window.setTimeout(() => setNotice(""), 2800); const timer = window.setTimeout(() => setFeaturedCarReminder(false), 5000); return () => window.clearTimeout(timer); };
-  const addStock = (values: { make: string; model: string; price: string; status: VehicleStatus; year: string; features: string[]; verification: string[] }) => { const price = Number(values.price); const template = vehicles[0]; const newId = `zc-new-${Date.now()}`; const newStockNo = `ZC-${String(stock.length + 240).padStart(4, "0")}`; const created: Vehicle = { ...template, id: newId, stockNo: newStockNo, make: values.make, model: values.model, year: Number(values.year), price, monthly: Math.round(price * 0.0203), mileage: 30000, status: values.status, statusTone: values.status === "Ready to view" ? "green" : values.status === "Duty paid" ? "blue" : values.status === "Reserved" ? "slate" : "amber", features: values.features.length ? values.features : template.features, verification: values.verification.length ? values.verification : template.verification, updated: "just now", seller: "Amina Wanjiku" }; setStock(current => [created, ...current]); setModalOpen(false); toast(`${created.stockNo} added to live stock`); };
-  const handleEditVehicle = (item: Vehicle) => { setEditVehicle(item); toast(`Editing ${item.make} ${item.model}`); };
-  const saveEdit = (updated: Vehicle) => { setStock(current => current.map(item => item.id === updated.id ? updated : item)); setEditVehicle(null); toast(`${updated.stockNo} updated`); };
-  const openFeaturedCar = () => { setFeaturedCarReminder(false); localStorage.setItem("featuredCarSet", "1"); setNotificationsOpen(false); toast("Featured car set to this week's top unit"); };
-  const addStaff = (event: FormEvent) => { event.preventDefault(); if (!newStaff.name || !newStaff.email) return; const created: StaffMember = { id: `AG-${String(team.length + 1).padStart(3, "0")}`, ...newStaff }; setTeam(current => [...current, created]); setNewStaff({ name: "", email: "", role: "Sales", branch: "Nairobi", password: "" }); toast(`${created.name} added to team with login ${created.email}`); };
-  const copyLogin = (member: StaffMember) => { navigator.clipboard.writeText(`${member.email} / ${member.password}`); toast(`Copied ${member.name}'s login`); };
+  const counts = {
+    all: stock.length,
+    ready: stock.filter(item => item.status === "available").length,
+    moving: stock.filter(
+      item => item.status === "in_transit" || item.status === "clearing"
+    ).length,
+    reserved: stock.filter(item => item.status === "reserved").length,
+  };
+  const showView = (next: ViewKey) => {
+    setView(next);
+    setMobileNavOpen(false);
+    window.history.replaceState({}, "", `/dealer?view=${next}`);
+  };
+  const toast = (text: string) => {
+    setNotice(text);
+    window.setTimeout(() => setNotice(""), 2800);
+    const timer = window.setTimeout(() => setFeaturedCarReminder(false), 5000);
+    return () => window.clearTimeout(timer);
+  };
+  const addStock = (values: {
+    make: string;
+    model: string;
+    price: string;
+    status: VehicleStatus;
+    year: string;
+    features: string[];
+    verification: string[];
+  }) => {
+    const price = Number(values.price);
+    const template = mockVehicles[0];
+    const newId = `zc-new-${Date.now()}`;
+    const newStockNo = `ZC-${String(stock.length + 240).padStart(4, "0")}`;
+    const created: Vehicle = {
+      ...template,
+      id: newId,
+      stockNo: newStockNo,
+      make: values.make,
+      model: values.model,
+      year: Number(values.year),
+      price,
+      monthly: Math.round(price * 0.0203),
+      mileage: 30000,
+      status: values.status,
+      statusTone: STATUS_TONE[values.status],
+      features: values.features.length ? values.features : template.features,
+      verification: values.verification.length
+        ? values.verification
+        : template.verification,
+      updated: "just now",
+      seller: "Amina Wanjiku",
+    };
+    setStock(current => [created, ...current]);
+    setModalOpen(false);
+    toast(`${created.stockNo} added to live stock`);
+  };
+  const handleEditVehicle = (item: Vehicle) => {
+    setEditVehicle(item);
+    toast(`Editing ${item.make} ${item.model}`);
+  };
+  const saveEdit = (updated: Vehicle) => {
+    setStock(current =>
+      current.map(item => (item.id === updated.id ? updated : item))
+    );
+    setEditVehicle(null);
+    toast(`${updated.stockNo} updated`);
+  };
+  const openFeaturedCar = () => {
+    setFeaturedCarReminder(false);
+    localStorage.setItem("featuredCarSet", "1");
+    setNotificationsOpen(false);
+    toast("Featured car set to this week's top unit");
+  };
+  const addStaff = (event: FormEvent) => {
+    event.preventDefault();
+    if (!newStaff.name || !newStaff.email) return;
+    const created: StaffMember = {
+      id: `AG-${String(team.length + 1).padStart(3, "0")}`,
+      ...newStaff,
+    };
+    setTeam(current => [...current, created]);
+    setNewStaff({
+      name: "",
+      email: "",
+      role: "Sales",
+      branch: "Nairobi",
+      password: "",
+    });
+    toast(`${created.name} added to team with login ${created.email}`);
+  };
+  const copyLogin = (member: StaffMember) => {
+    navigator.clipboard.writeText(`${member.email} / ${member.password}`);
+    toast(`Copied ${member.name}'s login`);
+  };
 
-  return <div className="dealer-app"><AmbientBackground /><aside className={`dealer-sidebar ${mobileNavOpen ? "mobile-open" : ""}`}><div className="dealer-brand"><Logo compact /><span><strong>Dealer workspace</strong><small>zara cars / nairobi</small></span></div><div className="dealer-profile"><span className="profile-avatar" aria-label="Amina Wanjiku">AW</span><div><strong>Amina Wanjiku</strong><small>Admin · Nairobi</small></div><ChevronRight size={15} /></div><nav className="dealer-nav" aria-label="Dealer workspace navigation">{navItems.map(item => { const Icon = item.icon; return <button key={item.key} className={view === item.key ? "active" : ""} onClick={() => showView(item.key)}><Icon size={17} /><span>{item.label}</span>{item.key === "leads" && <em>4</em>}</button>; })}</nav><div className="dealer-sidebar-bottom"><Link href="/"><ArrowRight size={15} /> Exit to showroom</Link><button className="sidebar-settings-button" onClick={() => setSettingsOpen(true)} aria-label="Workspace settings"><Settings2 size={15} /> Workspace settings</button></div></aside><section className="dealer-main"><header className="dealer-header"><div className="dealer-header-left"><button className="dealer-mobile-menu" onClick={() => setMobileNavOpen(!mobileNavOpen)} aria-label="Open dealer navigation"><Menu size={18} /></button><p className="section-kicker">{timeLabel}</p></div><div className="dealer-header-actions"><button className="notification-button" onClick={() => setNotificationsOpen(!notificationsOpen)} aria-label="Notifications">
-    <Bell size={17} />
-    <span>3</span>
-  </button><ThemeToggle /><button className="button button-red" onClick={() => setModalOpen(true)}><Plus size={16} /> Add stock</button></div></header>{notice && <div className="dealer-notice"><Check size={15} /> {notice}</div>}
-    {todayIsSunday && <div className="featured-car-reminder"><CalendarDays size={20} /><div><strong>Featured car reminder</strong><small>Pick this week's featured car for the landing page before stock goes live.</small></div><button className="button button-dark compact" onClick={openFeaturedCar}>Assign now</button></div>}
-    {notificationsOpen && <div className="notification-panel" onMouseDown={() => setNotificationsOpen(false)} role="dialog" aria-modal="true" aria-label="Notifications">
-      <div className="notification-card" onMouseDown={e => e.stopPropagation()}>
-        <div className="notification-header"><h3>Notifications</h3><button className="close-btn" onClick={() => setNotificationsOpen(false)} aria-label="Close notifications"><X size={14} /></button></div>
-        <div className="notification-item"><div><BadgeCheck size={16} /><div><strong>Featured car of the week</strong><small>Assign a vehicle to appear on the landing page hero.</small></div></div><button className="button button-red compact" onClick={openFeaturedCar}>Assign</button></div>
-        <div className="notification-item"><Users size={16} /><div><strong>4 new leads today</strong><small>James Mwangi, Wanjiru K., and 2 others enquired.</small></div></div>
-        <div className="notification-item"><Clock3 size={16} /><div><strong>Reservation expiring soon</strong><small>RS-2204 expires in 18h.</small></div></div>
+  return (
+    <div className="dealer-app">
+      <AmbientBackground />
+      <aside className={`dealer-sidebar ${mobileNavOpen ? "mobile-open" : ""}`}>
+        <div className="dealer-brand">
+          <Logo compact />
+          <span>
+            <strong>Dealer workspace</strong>
+            <small>zara cars / nairobi</small>
+          </span>
+        </div>
+        <div className="dealer-profile">
+          <span className="profile-avatar" aria-label="Amina Wanjiku">
+            AW
+          </span>
+          <div>
+            <strong>Amina Wanjiku</strong>
+            <small>Admin · Nairobi</small>
+          </div>
+          <ChevronRight size={15} />
+        </div>
+        <nav className="dealer-nav" aria-label="Dealer workspace navigation">
+          {navItems.map(item => {
+            const Icon = item.icon;
+            return (
+              <button
+                key={item.key}
+                className={view === item.key ? "active" : ""}
+                onClick={() => showView(item.key)}
+              >
+                <Icon size={17} />
+                <span>{item.label}</span>
+                {item.key === "leads" && <em>4</em>}
+              </button>
+            );
+          })}
+        </nav>
+        <div className="dealer-sidebar-bottom">
+          <Link href="/">
+            <ArrowRight size={15} /> Exit to showroom
+          </Link>
+          <button
+            className="sidebar-settings-button"
+            onClick={() => setSettingsOpen(true)}
+            aria-label="Workspace settings"
+          >
+            <Settings2 size={15} /> Workspace settings
+          </button>
+        </div>
+      </aside>
+      <section className="dealer-main">
+        <header className="dealer-header">
+          <div className="dealer-header-left">
+            <button
+              className="dealer-mobile-menu"
+              onClick={() => setMobileNavOpen(!mobileNavOpen)}
+              aria-label="Open dealer navigation"
+            >
+              <Menu size={18} />
+            </button>
+            <p className="section-kicker">{timeLabel}</p>
+          </div>
+          <div className="dealer-header-actions">
+            <button
+              className="notification-button"
+              onClick={() => setNotificationsOpen(!notificationsOpen)}
+              aria-label="Notifications"
+            >
+              <Bell size={17} />
+              <span>3</span>
+            </button>
+            <ThemeToggle />
+            <button
+              className="button button-red"
+              onClick={() => setModalOpen(true)}
+            >
+              <Plus size={16} /> Add stock
+            </button>
+          </div>
+        </header>
+        {notice && (
+          <div className="dealer-notice">
+            <Check size={15} /> {notice}
+          </div>
+        )}
+        {todayIsSunday && (
+          <div className="featured-car-reminder">
+            <CalendarDays size={20} />
+            <div>
+              <strong>Featured car reminder</strong>
+              <small>
+                Pick this week's featured car for the landing page before stock
+                goes live.
+              </small>
+            </div>
+            <button
+              className="button button-dark compact"
+              onClick={openFeaturedCar}
+            >
+              Assign now
+            </button>
+          </div>
+        )}
+        {notificationsOpen && (
+          <div
+            className="notification-panel"
+            onMouseDown={() => setNotificationsOpen(false)}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Notifications"
+          >
+            <div
+              className="notification-card"
+              onMouseDown={e => e.stopPropagation()}
+            >
+              <div className="notification-header">
+                <h3>Notifications</h3>
+                <button
+                  className="close-btn"
+                  onClick={() => setNotificationsOpen(false)}
+                  aria-label="Close notifications"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+              <div className="notification-item">
+                <div>
+                  <BadgeCheck size={16} />
+                  <div>
+                    <strong>Featured car of the week</strong>
+                    <small>
+                      Assign a vehicle to appear on the landing page hero.
+                    </small>
+                  </div>
+                </div>
+                <button
+                  className="button button-red compact"
+                  onClick={openFeaturedCar}
+                >
+                  Assign
+                </button>
+              </div>
+              <div className="notification-item">
+                <Users size={16} />
+                <div>
+                  <strong>4 new leads today</strong>
+                  <small>
+                    James Mwangi, Wanjiru K., and 2 others enquired.
+                  </small>
+                </div>
+              </div>
+              <div className="notification-item">
+                <Clock3 size={16} />
+                <div>
+                  <strong>Reservation expiring soon</strong>
+                  <small>RS-2204 expires in 18h.</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        {view === "overview" && (
+          <Overview
+            counts={counts}
+            onView={showView}
+            onAdd={() => setModalOpen(true)}
+          />
+        )}
+        {view === "stock" && (
+          <StockView
+            stock={stock}
+            query={query}
+            setQuery={setQuery}
+            statusFilter={statusFilter}
+            setStatusFilter={setStatusFilter}
+            onEdit={handleEditVehicle}
+          />
+        )}
+        {view === "leads" && (
+          <LeadsView leads={leads} onToast={toast} onOpen={setLeadDetail} />
+        )}
+        {view === "reservations" && (
+          <ReservationsView
+            reservations={reservations}
+            onToast={toast}
+            onOpen={setReservationDetail}
+          />
+        )}
+        {view === "trade-ins" && (
+          <TradeInsView
+            tradeIns={tradeIns}
+            onToast={toast}
+            onOpen={setTradeInDetail}
+          />
+        )}
+        {view === "finance" && (
+          <FinanceView
+            financeRequests={financeRequests}
+            onToast={toast}
+            onOpen={setFinanceDetail}
+          />
+        )}
+        {view === "sales" && <SalesView />}
+        {view === "team" && (
+          <TeamView team={team} onOpen={() => setSettingsOpen(true)} />
+        )}
+        {modalOpen && (
+          <StockModal
+            open={modalOpen}
+            onClose={() => setModalOpen(false)}
+            onSave={addStock}
+            featureOptions={featureOptions}
+            verificationOptions={verificationOptions}
+            statusOptions={statusOptions}
+          />
+        )}
+        {editVehicle && (
+          <EditModal
+            vehicle={editVehicle}
+            onClose={() => setEditVehicle(null)}
+            onSave={saveEdit}
+            featureOptions={featureOptions}
+            verificationOptions={verificationOptions}
+            statusOptions={statusOptions}
+          />
+        )}
+        {settingsOpen && (
+          <SettingsModal
+            open={settingsOpen}
+            onClose={() => setSettingsOpen(false)}
+            team={team}
+            newStaff={newStaff}
+            setNewStaff={setNewStaff}
+            onSubmit={addStaff}
+            onCopy={copyLogin}
+            roleOptions={roleOptions}
+            branchOptions={branchOptions}
+          />
+        )}
+        {leadDetail && (
+          <LeadDetailModal
+            lead={leadDetail}
+            onClose={() => setLeadDetail(null)}
+            onToast={toast}
+          />
+        )}
+        {reservationDetail && (
+          <ReservationDetailModal
+            reservation={reservationDetail}
+            onClose={() => setReservationDetail(null)}
+            onToast={toast}
+          />
+        )}
+        {tradeInDetail && (
+          <TradeInDetailModal
+            tradeIn={tradeInDetail}
+            onClose={() => setTradeInDetail(null)}
+            onToast={toast}
+          />
+        )}
+        {financeDetail && (
+          <FinanceDetailModal
+            finance={financeDetail}
+            onClose={() => setFinanceDetail(null)}
+            onToast={toast}
+          />
+        )}
+      </section>
+    </div>
+  );
+}
+
+function Overview({
+  counts,
+  onView,
+  onAdd,
+}: {
+  counts: { all: number; ready: number; moving: number; reserved: number };
+  onView: (view: ViewKey) => void;
+  onAdd: () => void;
+}) {
+  return (
+    <>
+      <div className="dealer-welcome">
+        <div>
+          <p className="section-kicker">Good morning, Amina</p>
+          <h2>
+            Keep the yard
+            <br />
+            <span>moving.</span>
+          </h2>
+          <p>One place for every unit, lead, and handover in your pipeline.</p>
+        </div>
+        <div className="dealer-welcome-orbit">
+          <Sparkles size={18} />
+          <span>Live operations</span>
+          <strong>8.6 / 10</strong>
+          <small>stock readiness</small>
+        </div>
       </div>
-    </div>}
-    {view === "overview" && <Overview counts={counts} onView={showView} onAdd={() => setModalOpen(true)} />}
-    {view === "stock" && <StockView stock={stock} query={query} setQuery={setQuery} statusFilter={statusFilter} setStatusFilter={setStatusFilter} onEdit={handleEditVehicle} />}
-    {view === "leads" && <LeadsView leads={leads} onToast={toast} onOpen={setLeadDetail} />}
-    {view === "reservations" && <ReservationsView reservations={reservations} onToast={toast} onOpen={setReservationDetail} />}
-    {view === "trade-ins" && <TradeInsView tradeIns={tradeIns} onToast={toast} onOpen={setTradeInDetail} />}
-    {view === "finance" && <FinanceView financeRequests={financeRequests} onToast={toast} onOpen={setFinanceDetail} />}
-    {view === "sales" && <SalesView />}
-    {view === "team" && <TeamView team={team} onOpen={() => setSettingsOpen(true)} />}
-    {modalOpen && <StockModal open={modalOpen} onClose={() => setModalOpen(false)} onSave={addStock} featureOptions={featureOptions} verificationOptions={verificationOptions} statusOptions={statusOptions} />}
-    {editVehicle && <EditModal vehicle={editVehicle} onClose={() => setEditVehicle(null)} onSave={saveEdit} featureOptions={featureOptions} verificationOptions={verificationOptions} statusOptions={statusOptions} />}
-    {settingsOpen && <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} team={team} newStaff={newStaff} setNewStaff={setNewStaff} onSubmit={addStaff} onCopy={copyLogin} roleOptions={roleOptions} branchOptions={branchOptions} />}
-    {leadDetail && <LeadDetailModal lead={leadDetail} onClose={() => setLeadDetail(null)} onToast={toast} />}
-    {reservationDetail && <ReservationDetailModal reservation={reservationDetail} onClose={() => setReservationDetail(null)} onToast={toast} />}
-    {tradeInDetail && <TradeInDetailModal tradeIn={tradeInDetail} onClose={() => setTradeInDetail(null)} onToast={toast} />}
-    {financeDetail && <FinanceDetailModal finance={financeDetail} onClose={() => setFinanceDetail(null)} onToast={toast} />}
-  </section></div>};
+      <div className="dealer-metrics">
+        <Metric
+          label="Live stock"
+          value={String(counts.all)}
+          change="+2 this week"
+          icon={CarFront}
+          tone="red"
+        />
+        <Metric
+          label="Ready to view"
+          value={String(counts.ready)}
+          change="61% of stock"
+          icon={PackageCheck}
+          tone="green"
+        />
+        <Metric
+          label="In motion"
+          value={String(counts.moving)}
+          change="3 arriving soon"
+          icon={Truck}
+          tone="blue"
+        />
+        <Metric
+          label="Reserved"
+          value={String(counts.reserved)}
+          change="1 expires today"
+          icon={Clock3}
+          tone="clay"
+        />
+      </div>
+      <div className="dealer-overview-grid">
+        <div className="dealer-panel stock-pipeline">
+          <div className="panel-heading">
+            <div>
+              <p className="section-kicker">Stock pipeline</p>
+              <h3>What needs your attention</h3>
+            </div>
+            <button className="text-link" onClick={() => onView("stock")}>
+              Open stock desk <ArrowRight size={14} />
+            </button>
+          </div>
+          <div className="pipeline-steps">
+            <div>
+              <span className="pipeline-number red">{counts.ready}</span>
+              <strong>Ready to view</strong>
+              <small>Showroom-ready units</small>
+            </div>
+            <div>
+              <span className="pipeline-number blue">
+                {counts.all - counts.ready - counts.moving - counts.reserved}
+              </span>
+              <strong>Duty paid</strong>
+              <small>Paperwork complete</small>
+            </div>
+            <div>
+              <span className="pipeline-number amber">{counts.moving}</span>
+              <strong>On the way</strong>
+              <small>Clearing / transit</small>
+            </div>
+            <div>
+              <span className="pipeline-number slate">{counts.reserved}</span>
+              <strong>Reserved</strong>
+              <small>Follow up today</small>
+            </div>
+          </div>
+          <div className="pipeline-bar">
+            <span>
+              <span className="pipeline-bar-step red" />
+              <span className="pipeline-bar-step blue" />
+              <span className="pipeline-bar-step amber" />
+              <span className="pipeline-bar-step slate" />
+            </span>
+          </div>
+        </div>
+        <div className="dealer-panel">
+          <div className="panel-heading">
+            <div>
+              <p className="section-kicker">Revenue today</p>
+              <h3>KES 1.2M · KES 5.8M this week</h3>
+            </div>
+          </div>
+          <div className="revenue-summary">
+            <div>
+              <small>Completed sales</small>
+              <strong>4</strong>
+            </div>
+            <div>
+              <small>Finance matched</small>
+              <strong>2</strong>
+            </div>
+            <div>
+              <small>Avg. ticket</small>
+              <strong>KES 420K</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="dealer-panel live-leads">
+        <div className="panel-heading">
+          <div>
+            <p className="section-kicker">Live leads</p>
+            <h3>4 open conversations</h3>
+          </div>
+          <button className="text-link" onClick={() => onView("leads")}>
+            Open lead inbox <ArrowRight size={14} />
+          </button>
+        </div>
+        <div className="lead-list">
+          {leads.map(lead => (
+            <div key={lead.id} className="lead-row">
+              <span className="mini-avatar large">{lead.initials}</span>
+              <div className="lead-person">
+                <strong>{lead.name}</strong>
+                <small>
+                  {lead.id} · {lead.time}
+                </small>
+              </div>
+              <div className="lead-vehicle">
+                <span>Interested in</span>
+                <strong>{lead.vehicle}</strong>
+              </div>
+              <span className="source-tag">{lead.source}</span>
+              <StatusTag label={lead.status} />
+              <button
+                className="row-arrow"
+                onClick={() => onView("leads")}
+                aria-label={`Open ${lead.name}'s conversation`}
+              >
+                <ArrowRight size={16} />
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}
 
-function Overview({ counts, onView, onAdd }: { counts: { all: number; ready: number; moving: number; reserved: number }; onView: (view: ViewKey) => void; onAdd: () => void }) { return <><div className="dealer-welcome"><div><p className="section-kicker">Good morning, Amina</p><h2>Keep the yard<br /><span>moving.</span></h2><p>One place for every unit, lead, and handover in your pipeline.</p></div><div className="dealer-welcome-orbit"><Sparkles size={18} /><span>Live operations</span><strong>8.6 / 10</strong><small>stock readiness</small></div></div><div className="dealer-metrics"><Metric label="Live stock" value={String(counts.all)} change="+2 this week" icon={CarFront} tone="red" /><Metric label="Ready to view" value={String(counts.ready)} change="61% of stock" icon={PackageCheck} tone="green" /><Metric label="In motion" value={String(counts.moving)} change="3 arriving soon" icon={Truck} tone="blue" /><Metric label="Reserved" value={String(counts.reserved)} change="1 expires today" icon={Clock3} tone="clay" /></div><div className="dealer-overview-grid"><div className="dealer-panel stock-pipeline"><div className="panel-heading"><div><p className="section-kicker">Stock pipeline</p><h3>What needs your attention</h3></div><button className="text-link" onClick={() => onView("stock")}>Open stock desk <ArrowRight size={14} /></button></div><div className="pipeline-steps"><div><span className="pipeline-number red">{counts.ready}</span><strong>Ready to view</strong><small>Showroom-ready units</small></div><div><span className="pipeline-number blue">{counts.all - counts.ready - counts.moving - counts.reserved}</span><strong>Duty paid</strong><small>Paperwork complete</small></div><div><span className="pipeline-number amber">{counts.moving}</span><strong>On the way</strong><small>Clearing / transit</small></div><div><span className="pipeline-number slate">{counts.reserved}</span><strong>Reserved</strong><small>Follow up today</small></div></div><div className="pipeline-bar"><span><span className="pipeline-bar-step red" /><span className="pipeline-bar-step blue" /><span className="pipeline-bar-step amber" /><span className="pipeline-bar-step slate" /></span></div></div><div className="dealer-panel"><div className="panel-heading"><div><p className="section-kicker">Revenue today</p><h3>KES 1.2M · KES 5.8M this week</h3></div></div><div className="revenue-summary"><div><small>Completed sales</small><strong>4</strong></div><div><small>Finance matched</small><strong>2</strong></div><div><small>Avg. ticket</small><strong>KES 420K</strong></div></div></div></div><div className="dealer-panel live-leads"><div className="panel-heading"><div><p className="section-kicker">Live leads</p><h3>4 open conversations</h3></div><button className="text-link" onClick={() => onView("leads")}>Open lead inbox <ArrowRight size={14} /></button></div><div className="lead-list">{leads.map(lead => <div key={lead.id} className="lead-row"><span className="mini-avatar large">{lead.initials}</span><div className="lead-person"><strong>{lead.name}</strong><small>{lead.id} · {lead.time}</small></div><div className="lead-vehicle"><span>Interested in</span><strong>{lead.vehicle}</strong></div><span className="source-tag">{lead.source}</span><StatusTag label={lead.status} /><button className="row-arrow" onClick={() => onView("leads")} aria-label={`Open ${lead.name}'s conversation`}><ArrowRight size={16} /></button></div>)}</div></div></>; }
+function StockView({
+  stock,
+  query,
+  setQuery,
+  statusFilter,
+  setStatusFilter,
+  onEdit,
+}: {
+  stock: Vehicle[];
+  query: string;
+  setQuery: (value: string) => void;
+  statusFilter: string;
+  setStatusFilter: (value: string) => void;
+  onEdit: (vehicle: Vehicle) => void;
+}) {
+  const stockFiltered = stock.filter(item => {
+    const haystack =
+      `${item.stockNo} ${item.make} ${item.model} ${item.location}`.toLowerCase();
+    return (
+      (!query || haystack.includes(query.toLowerCase())) &&
+      (statusFilter === "All status" || item.status === statusFilter)
+    );
+  });
+  return (
+    <>
+      <SectionHeading
+        eyebrow="Dealer operations / Inventory"
+        title="Inventory list"
+      />
+      <div className="stock-summary-row">
+        <div>
+          <small>Total live units</small>
+          <strong>{stock.length}</strong>
+        </div>
+        <div>
+          <small>Ready to view</small>
+          <strong>
+            {stock.filter(item => item.status === "available").length}
+          </strong>
+        </div>
+        <div>
+          <small>Showing</small>
+          <strong>
+            {stock.filter(item => item.status === "duty_paid").length +
+              stock.filter(item => item.status === "clearing").length}
+          </strong>
+        </div>
+        <div>
+          <small>Gallery completion</small>
+          <strong>78%</strong>
+        </div>
+      </div>
+      <div className="dealer-panel stock-table-panel">
+        <div className="table-toolbar">
+          <div className="table-search">
+            <Search size={16} />
+            <input
+              value={query}
+              onChange={event => setQuery(event.target.value)}
+              placeholder="Search stock number, make, model"
+              aria-label="Search stock"
+            />
+          </div>
+          <div className="table-filter">
+            <select
+              value={statusFilter}
+              onChange={event => setStatusFilter(event.target.value)}
+            >
+              <option>All status</option>
+              {statusOptions.map(s => (
+                <option key={s} value={s}>{STATUS_LABELS[s]}</option>
+              ))}
+            </select>
+          </div>
+          <button className="filter-chip">
+            <Archive size={15} /> Export
+          </button>
+        </div>
+        <div className="stock-table">
+          <div className="stock-table-head">
+            <span>Vehicle</span>
+            <span>Location</span>
+            <span>Status</span>
+            <span>Price</span>
+            <span>Updated</span>
+            <span />
+          </div>
+          {stockFiltered.map(item => (
+            <div className="stock-table-row" key={item.id}>
+              <div className="stock-vehicle">
+                <img
+                  src={item.image}
+                  alt={`Thumbnail of ${item.year} ${item.make} ${item.model}`}
+                  loading="lazy"
+                />
+                <div>
+                  <strong>
+                    {item.year} {item.make} {item.model}
+                  </strong>
+                  <small>
+                    {item.stockNo} · {item.variant}
+                  </small>
+                </div>
+              </div>
+              <span className="table-location">
+                <MapPin size={13} /> {item.location}
+              </span>
+               <StatusTag label={STATUS_LABELS[item.status] ?? item.status} />
+               <span className="table-price">
+                <small>{money(item.price)}</small>
+              </span>
+              <span className="table-updated">
+                <small>{item.updated}</small>
+              </span>
+              <button
+                className="row-arrow edit-button"
+                onClick={() => onEdit(item)}
+                aria-label={`Edit ${item.make} ${item.model}`}
+              >
+                <ListPlus size={16} />
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}
 
-function StockView({ stock, query, setQuery, statusFilter, setStatusFilter, onEdit }: { stock: Vehicle[]; query: string; setQuery: (value: string) => void; statusFilter: string; setStatusFilter: (value: string) => void; onEdit: (vehicle: Vehicle) => void }) { const stockFiltered = stock.filter(item => { const haystack = `${item.stockNo} ${item.make} ${item.model} ${item.location}`.toLowerCase(); return (!query || haystack.includes(query.toLowerCase())) && (statusFilter === "All status" || item.status === statusFilter); }); return <><SectionHeading eyebrow="Dealer operations / Inventory" title="Inventory list" /><div className="stock-summary-row"><div><small>Total live units</small><strong>{stock.length}</strong></div><div><small>Ready to view</small><strong>{stock.filter(item => item.status === "Ready to view").length}</strong></div><div><small>Showing</small><strong>{stock.filter(item => item.status === "Duty paid").length + stock.filter(item => item.status === "Clearing").length}</strong></div><div><small>Gallery completion</small><strong>78%</strong></div></div><div className="dealer-panel stock-table-panel"><div className="table-toolbar"><div className="table-search"><Search size={16} /><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Search stock number, make, model" aria-label="Search stock" /></div><div className="table-filter"><select value={statusFilter} onChange={event => setStatusFilter(event.target.value)}><option>All status</option>{statusOptions.map(option => <option key={option}>{option}</option>)}</select></div><button className="filter-chip"><Archive size={15} /> Export</button></div><div className="stock-table"><div className="stock-table-head"><span>Vehicle</span><span>Location</span><span>Status</span><span>Price</span><span>Updated</span><span /></div>{stockFiltered.map(item => <div className="stock-table-row" key={item.id}><div className="stock-vehicle"><img src={item.image} alt={`Thumbnail of ${item.year} ${item.make} ${item.model}`} loading="lazy" /><div><strong>{item.year} {item.make} {item.model}</strong><small>{item.stockNo} · {item.trim}</small></div></div><span className="table-location"><MapPin size={13} /> {item.location}</span><StatusTag label={item.status} /><span className="table-price"><small>{money(item.price)}</small></span><span className="table-updated"><small>{item.updated}</small></span><button className="row-arrow edit-button" onClick={() => onEdit(item)} aria-label={`Edit ${item.make} ${item.model}`}><ListPlus size={16} /></button></div>)}</div></div></>; }
-
-function EditModal({ vehicle, onClose, onSave, featureOptions, verificationOptions, statusOptions }: { vehicle: Vehicle; onClose: () => void; onSave: (v: Vehicle) => void; featureOptions: string[]; verificationOptions: string[]; statusOptions: VehicleStatus[] }) {
+function EditModal({
+  vehicle,
+  onClose,
+  onSave,
+  featureOptions,
+  verificationOptions,
+  statusOptions,
+}: {
+  vehicle: Vehicle;
+  onClose: () => void;
+  onSave: (v: Vehicle) => void;
+  featureOptions: string[];
+  verificationOptions: string[];
+  statusOptions: VehicleStatus[];
+}) {
   const [local, setLocal] = useState(vehicle);
   const [selectedFeatures, setSelectedFeatures] = useState(vehicle.features);
-  const [selectedVerification, setSelectedVerification] = useState(vehicle.verification);
-  const toggleFeature = (item: string) => { setSelectedFeatures(prev => prev.includes(item) ? prev.filter(f => f !== item) : [...prev, item]); };
-  const toggleVerification = (item: string) => { setSelectedVerification(prev => prev.includes(item) ? prev.filter(v => v !== item) : [...prev, item]); };
-  const handleSubmit = (e: FormEvent) => { e.preventDefault(); onSave({ ...local, features: selectedFeatures, verification: selectedVerification }); };
-  return <div className="modal-backdrop" onMouseDown={onClose} role="dialog" aria-modal="true" aria-label="Edit vehicle details"><div className="modal-card" onMouseDown={e => e.stopPropagation()}><button className="modal-close" onClick={onClose} aria-label="Close"><X size={18} /></button><h2>Edit {vehicle.make} {vehicle.model}</h2><p>Update the details for stock #{vehicle.stockNo}.</p><form className="stock-form" onSubmit={handleSubmit}>
-    <div className="stock-form-grid">
-      <label htmlFor={`edit-make`}>Make<input id={`edit-make`} type="text" value={local.make} onChange={e => setLocal({ ...local, make: e.target.value })} /></label>
-      <label htmlFor={`edit-model`}>Model<input id={`edit-model`} type="text" value={local.model} onChange={e => setLocal({ ...local, model: e.target.value })} /></label>
-      <label htmlFor={`edit-price`}>Price (KES)<input id={`edit-price`} type="number" value={local.price} onChange={e => setLocal({ ...local, price: Number(e.target.value) })} /></label>
-      <label htmlFor={`edit-status`}>Status<select id={`edit-status`} value={local.status} onChange={e => setLocal({ ...local, status: e.target.value as VehicleStatus })}>{statusOptions.map(s => <option key={s}>{s}</option>)}</select></label>
-      <label htmlFor={`edit-location`}>Location<input id={`edit-location`} type="text" value={local.location} onChange={e => setLocal({ ...local, location: e.target.value })} /></label>
-      <label htmlFor={`edit-mileage`}>Mileage (km)<input id={`edit-mileage`} type="number" value={local.mileage} onChange={e => setLocal({ ...local, mileage: Number(e.target.value) })} /></label>
+  const [selectedVerification, setSelectedVerification] = useState(
+    vehicle.verification
+  );
+  const toggleFeature = (item: string) => {
+    setSelectedFeatures(prev =>
+      prev.includes(item) ? prev.filter(f => f !== item) : [...prev, item]
+    );
+  };
+  const toggleVerification = (item: string) => {
+    setSelectedVerification(prev =>
+      prev.includes(item) ? prev.filter(v => v !== item) : [...prev, item]
+    );
+  };
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    onSave({
+      ...local,
+      features: selectedFeatures,
+      verification: selectedVerification,
+    });
+  };
+  return (
+    <div
+      className="modal-backdrop"
+      onMouseDown={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Edit vehicle details"
+    >
+      <div className="modal-card" onMouseDown={e => e.stopPropagation()}>
+        <button className="modal-close" onClick={onClose} aria-label="Close">
+          <X size={18} />
+        </button>
+        <h2>
+          Edit {vehicle.make} {vehicle.model}
+        </h2>
+        <p>Update the details for stock #{vehicle.stockNo}.</p>
+        <form className="stock-form" onSubmit={handleSubmit}>
+          <div className="stock-form-grid">
+            <label htmlFor={`edit-make`}>
+              Make
+              <input
+                id={`edit-make`}
+                type="text"
+                value={local.make}
+                onChange={e => setLocal({ ...local, make: e.target.value })}
+              />
+            </label>
+            <label htmlFor={`edit-model`}>
+              Model
+              <input
+                id={`edit-model`}
+                type="text"
+                value={local.model}
+                onChange={e => setLocal({ ...local, model: e.target.value })}
+              />
+            </label>
+            <label htmlFor={`edit-price`}>
+              Price (KES)
+              <input
+                id={`edit-price`}
+                type="number"
+                value={local.price}
+                onChange={e =>
+                  setLocal({ ...local, price: Number(e.target.value) })
+                }
+              />
+            </label>
+            <label htmlFor={`edit-status`}>
+              Status
+              <select
+                id={`edit-status`}
+                value={local.status}
+                onChange={e =>
+                  setLocal({
+                    ...local,
+                    status: e.target.value as VehicleStatus,
+                  })
+                }
+              >
+                {statusOptions.map(s => (
+                  <option key={s} value={s}>{STATUS_LABELS[s]}</option>
+                ))}
+              </select>
+            </label>
+            <label htmlFor={`edit-location`}>
+              Location
+              <input
+                id={`edit-location`}
+                type="text"
+                value={local.location}
+                onChange={e => setLocal({ ...local, location: e.target.value })}
+              />
+            </label>
+            <label htmlFor={`edit-mileage`}>
+              Mileage (km)
+              <input
+                id={`edit-mileage`}
+                type="number"
+                value={local.mileage}
+                onChange={e =>
+                  setLocal({ ...local, mileage: Number(e.target.value) })
+                }
+              />
+            </label>
+          </div>
+          <label>
+            Features
+            <div className="feature-checkboxes">
+              {featureOptions.map(item => (
+                <label key={item} className="checkbox-option">
+                  <input
+                    type="checkbox"
+                    checked={selectedFeatures.includes(item)}
+                    onChange={() => toggleFeature(item)}
+                  />
+                  <span>{item}</span>
+                </label>
+              ))}
+            </div>
+          </label>
+          <label>
+            Verification
+            <div className="verification-checkboxes">
+              {verificationOptions.map(item => (
+                <label key={item} className="checkbox-option">
+                  <input
+                    type="checkbox"
+                    checked={selectedVerification.includes(item)}
+                    onChange={() => toggleVerification(item)}
+                  />
+                  <span>{item}</span>
+                </label>
+              ))}
+            </div>
+          </label>
+          <div className="modal-actions">
+            <button
+              type="button"
+              className="button button-outline"
+              onClick={onClose}
+            >
+              Cancel
+            </button>
+            <button type="submit" className="button button-red">
+              Save changes <ArrowRight size={15} />
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
-    <label>Features<div className="feature-checkboxes">{featureOptions.map(item => <label key={item} className="checkbox-option"><input type="checkbox" checked={selectedFeatures.includes(item)} onChange={() => toggleFeature(item)} /><span>{item}</span></label>)}</div></label>
-    <label>Verification<div className="verification-checkboxes">{verificationOptions.map(item => <label key={item} className="checkbox-option"><input type="checkbox" checked={selectedVerification.includes(item)} onChange={() => toggleVerification(item)} /><span>{item}</span></label>)}</div></label>
-    <div className="modal-actions"><button type="button" className="button button-outline" onClick={onClose}>Cancel</button><button type="submit" className="button button-red">Save changes <ArrowRight size={15} /></button></div>
-  </form></div></div>;}
+  );
+}
 
-function StockModal({ open, onClose, onSave, featureOptions, verificationOptions, statusOptions }: { open: boolean; onClose: () => void; onSave: (values: { make: string; model: string; price: string; status: VehicleStatus; year: string; features: string[]; verification: string[] }) => void; featureOptions: string[]; verificationOptions: string[]; statusOptions: VehicleStatus[] }) {
+function StockModal({
+  open,
+  onClose,
+  onSave,
+  featureOptions,
+  verificationOptions,
+  statusOptions,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onSave: (values: {
+    make: string;
+    model: string;
+    price: string;
+    status: VehicleStatus;
+    year: string;
+    features: string[];
+    verification: string[];
+  }) => void;
+  featureOptions: string[];
+  verificationOptions: string[];
+  statusOptions: VehicleStatus[];
+}) {
   const [make, setMake] = useState("Toyota");
   const [model, setModel] = useState("");
   const [year, setYear] = useState("2022");
   const [price, setPrice] = useState("");
-  const [status, setStatus] = useState<VehicleStatus>("Ready to view");
+  const [status, setStatus] = useState<VehicleStatus>("available");
   const [features, setFeatures] = useState<string[]>([]);
   const [verification, setVerification] = useState<string[]>([]);
-  const toggleFeature = (item: string) => { setFeatures(prev => prev.includes(item) ? prev.filter(f => f !== item) : [...prev, item]); };
-  const toggleVerification = (item: string) => { setVerification(prev => prev.includes(item) ? prev.filter(v => v !== item) : [...prev, item]); };
-  return <div className="modal-backdrop" onMouseDown={onClose} role="dialog" aria-modal="true" aria-label="Add stock"><div className="modal-card" onMouseDown={e => e.stopPropagation()}><button className="modal-close" onClick={onClose} aria-label="Close"><X size={18} /></button><h2>Add new stock</h2><p>Enter the key details to add a vehicle to the live stock.</p><form onSubmit={(e) => { e.preventDefault(); onSave({ make, model, price, status, year, features, verification }); }}><div className="stock-form-grid"><label>Make<input value={make} onChange={e => setMake(e.target.value)} /></label><label>Model<input value={model} onChange={e => setModel(e.target.value)} required /></label><label>Price (KES)<input value={price} onChange={e => setPrice(e.target.value)} type="number" required /></label><label>Status<select value={status} onChange={e => setStatus(e.target.value as VehicleStatus)}>{statusOptions.map(s => <option key={s}>{s}</option>)}</select></label><label>Year<input value={year} onChange={e => setYear(e.target.value)} type="number" min="1990" max="2026" /></label></div><label>Features<div className="feature-checkboxes">{featureOptions.map(item => <label key={item} className="checkbox-option"><input type="checkbox" checked={features.includes(item)} onChange={() => toggleFeature(item)} /><span>{item}</span></label>)}</div></label><label>Verification<div className="verification-checkboxes">{verificationOptions.map(item => <label key={item} className="checkbox-option"><input type="checkbox" checked={verification.includes(item)} onChange={() => toggleVerification(item)} /><span>{item}</span></label>)}</div></label><div className="modal-actions"><button type="button" className="button button-outline" onClick={onClose}>Cancel</button><button type="submit" className="button button-red">Add to stock <ArrowRight size={15} /></button></div></form></div></div>;}
-
-function LeadsView({ leads, onToast, onOpen }: { leads: Lead[]; onToast: (text: string) => void; onOpen: (lead: Lead) => void }) { return <><SectionHeading eyebrow="Customer pipeline" title="Lead inbox" action="Assign lead" onAction={() => onToast("Lead assignment drawer coming next")} /><div className="dealer-panel full-panel"><div className="table-toolbar"><div className="inbox-summary"><strong>4</strong><span>open conversations<br /><small>Average response time: 11m</small></span></div><button className="filter-chip"><Search size={15} /> Search leads</button></div><div className="lead-list">{leads.map(lead => <div key={lead.id} className="lead-row"><span className="mini-avatar large">{lead.initials}</span><div className="lead-person"><strong>{lead.name}</strong><small>{lead.id} · {lead.time}</small></div><div className="lead-vehicle"><span>Interested in</span><strong>{lead.vehicle}</strong></div><span className="source-tag">{lead.source}</span><StatusTag label={lead.status} /><button className="row-arrow" onClick={() => onOpen(lead)} aria-label={`Open ${lead.name}'s details`}><ArrowRight size={16} /></button></div>)}</div></div></>; }
-
-function ReservationsView({ reservations, onToast, onOpen }: { reservations: Reservation[]; onToast: (text: string) => void; onOpen: (reservation: Reservation) => void }) { return <><SectionHeading eyebrow="Holds & handovers" title="Active holds" action="Create hold" onAction={() => onToast("Reservation creation ready from a vehicle row")} /><div className="reservation-cards">{reservations.map(item => <div className="reservation-card" key={item.id}><div className="reservation-card-top"><span>{item.id}</span><StatusTag label={item.status} /></div><h3>{item.vehicle}</h3><p>Buyer: {item.buyer}</p><div className="reservation-bottom"><span><small>{item.status === "Active" ? "Hold expires" : "Status"}</small><strong>{item.expires}</strong></span><span><small>Deposit</small><strong>{money(item.amount)}</strong></span></div><button className="text-link" onClick={() => onOpen(item)}>Open details <ArrowRight size={14} /></button></div>)}</div></>; }
-
-function TradeInsView({ tradeIns, onToast, onOpen }: { tradeIns: TradeIn[]; onToast: (text: string) => void; onOpen: (tradeIn: TradeIn) => void }) { return <><SectionHeading eyebrow="Acquisition" title="Trade-in requests" action="New valuation" onAction={() => onToast("Valuation form ready for a customer enquiry")} /><div className="dealer-panel full-panel"><div className="trade-table">{tradeIns.map(item => <div key={item.id} className="trade-row"><span className="trade-id">{item.id}</span><div><strong>{item.name}</strong><small>{item.vehicle} · via {item.source}</small></div><strong>{item.estimate}</strong><StatusTag label={item.status} /><span className="table-updated">{item.time}</span><button className="row-arrow" onClick={() => onOpen(item)} aria-label={`Review trade-in ${item.id}`}><ArrowRight size={16} /></button></div>)}</div></div></>; }
-
-function FinanceView({ financeRequests, onToast, onOpen }: { financeRequests: FinanceRequest[]; onToast: (text: string) => void; onOpen: (finance: FinanceRequest) => void }) { return <><SectionHeading eyebrow="Buyer readiness" title="Matched buyers" action="Match a buyer" onAction={() => onToast("Finance matcher ready from a lead")} /><div className="dealer-panel full-panel"><div className="finance-table">{financeRequests.map(item => <div key={item.id} className="finance-row"><div className="finance-person"><span className="mini-avatar">{item.name.split(" ").map(word => word[0]).join("").slice(0, 2)}</span><div><strong>{item.name}</strong><small>{item.employment} · {item.time}</small></div></div><div><small>Looking at</small><strong>{item.vehicle}</strong></div><div><small>Monthly budget</small><strong>{item.budget}</strong></div><div><small>Partner</small><strong>{item.partner}</strong></div><StatusTag label={item.status} /><button className="row-arrow" onClick={() => onOpen(item)} aria-label={`Open finance match ${item.id}`}><ArrowRight size={16} /></button></div>)}</div></div></>; }
-
-function SalesView() { return <><SectionHeading eyebrow="Performance / August 2026" title="Sales pulse" /><div className="sales-kpis"><Metric label="Gross sales" value="KES 18.4M" change="+18.4%" icon={CircleDollarSign} tone="red" /><Metric label="Units moved" value="8" change="+2 vs July" icon={CarFront} tone="blue" /><Metric label="Avg. ticket" value="KES 2.3M" change="+6.1%" icon={Tag} tone="clay" /></div><div className="dealer-panel full-panel"><div className="panel-heading"><div><p className="section-kicker">Completed and pending</p><h3>Latest sales</h3></div><span className="muted-label">Updated just now</span></div><div className="sales-table">{sales.map(item => <div className="sales-row" key={item.id}><span className="trade-id">{item.id}</span><div><strong>{item.vehicle}</strong><small>{item.buyer} · {item.agent}</small></div><strong>{money(item.amount)}</strong><span>{item.date}</span><StatusTag label={item.status} /></div>)}</div></div></>; }
-
-function SettingsModal({ open, onClose, team, newStaff, setNewStaff, onSubmit, onCopy, roleOptions, branchOptions }: { open: boolean; onClose: () => void; team: StaffMember[]; newStaff: { name: string; email: string; role: string; branch: string; password: string }; setNewStaff: (v: { name: string; email: string; role: string; branch: string; password: string }) => void; onSubmit: (e: FormEvent) => void; onCopy: (member: StaffMember) => void; roleOptions: string[]; branchOptions: string[] }) {
-  const generatePassword = () => { const chars = "abcdefghijklmnopqrstuvwxyz0123456789"; let pass = "zara"; for (let i = 0; i < 6; i++) pass += chars[Math.floor(Math.random() * chars.length)]; setNewStaff({ ...newStaff, password: pass }); };
-  const handleSubmit = (e: FormEvent) => { e.preventDefault(); if (!newStaff.name || !newStaff.email) return; onSubmit(e); };
-  return <div className="modal-backdrop" onMouseDown={onClose} role="dialog" aria-modal="true" aria-label="Workspace settings"><div className="modal-card wide" onMouseDown={e => e.stopPropagation()}><button className="modal-close" onClick={onClose} aria-label="Close"><X size={18} /></button><h2>Workspace settings</h2><p>Add team members who get their own login to manage sales, stock, and customer follow-ups.</p>
-  <form onSubmit={handleSubmit}>
-    <h3>Invite new staff member</h3>
-    <div className="stock-form-grid">
-      <label htmlFor="staff-name">Full name<input id="staff-name" value={newStaff.name} onChange={e => setNewStaff({ ...newStaff, name: e.target.value })} required /></label>
-      <label htmlFor="staff-email">Email<input id="staff-email" type="email" value={newStaff.email} onChange={e => setNewStaff({ ...newStaff, email: e.target.value })} required /></label>
-      <label htmlFor="staff-role">Role<select id="staff-role" value={newStaff.role} onChange={e => setNewStaff({ ...newStaff, role: e.target.value })}>{roleOptions.map(r => <option key={r}>{r}</option>)}</select></label>
-      <label htmlFor="staff-branch">Branch<select id="staff-branch" value={newStaff.branch} onChange={e => setNewStaff({ ...newStaff, branch: e.target.value })}>{branchOptions.map(b => <option key={b}>{b}</option>)}</select></label>
-      <label htmlFor="staff-password">Password<button type="button" className="button button-outline compact" onClick={generatePassword}>Generate</button><input id="staff-password" type="text" value={newStaff.password} onChange={e => setNewStaff({ ...newStaff, password: e.target.value })} placeholder="Auto-generated or set manually" /></label>
+  const toggleFeature = (item: string) => {
+    setFeatures(prev =>
+      prev.includes(item) ? prev.filter(f => f !== item) : [...prev, item]
+    );
+  };
+  const toggleVerification = (item: string) => {
+    setVerification(prev =>
+      prev.includes(item) ? prev.filter(v => v !== item) : [...prev, item]
+    );
+  };
+  return (
+    <div
+      className="modal-backdrop"
+      onMouseDown={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Add stock"
+    >
+      <div className="modal-card" onMouseDown={e => e.stopPropagation()}>
+        <button className="modal-close" onClick={onClose} aria-label="Close">
+          <X size={18} />
+        </button>
+        <h2>Add new stock</h2>
+        <p>Enter the key details to add a vehicle to the live stock.</p>
+        <form
+          onSubmit={e => {
+            e.preventDefault();
+            onSave({
+              make,
+              model,
+              price,
+              status,
+              year,
+              features,
+              verification,
+            });
+          }}
+        >
+          <div className="stock-form-grid">
+            <label>
+              Make
+              <input value={make} onChange={e => setMake(e.target.value)} />
+            </label>
+            <label>
+              Model
+              <input
+                value={model}
+                onChange={e => setModel(e.target.value)}
+                required
+              />
+            </label>
+            <label>
+              Price (KES)
+              <input
+                value={price}
+                onChange={e => setPrice(e.target.value)}
+                type="number"
+                required
+              />
+            </label>
+            <label>
+              Status
+              <select
+                value={status}
+                onChange={e => setStatus(e.target.value as VehicleStatus)}
+              >
+                {statusOptions.map(s => (
+                  <option key={s} value={s}>{STATUS_LABELS[s]}</option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Year
+              <input
+                value={year}
+                onChange={e => setYear(e.target.value)}
+                type="number"
+                min="1990"
+                max="2026"
+              />
+            </label>
+          </div>
+          <label>
+            Features
+            <div className="feature-checkboxes">
+              {featureOptions.map(item => (
+                <label key={item} className="checkbox-option">
+                  <input
+                    type="checkbox"
+                    checked={features.includes(item)}
+                    onChange={() => toggleFeature(item)}
+                  />
+                  <span>{item}</span>
+                </label>
+              ))}
+            </div>
+          </label>
+          <label>
+            Verification
+            <div className="verification-checkboxes">
+              {verificationOptions.map(item => (
+                <label key={item} className="checkbox-option">
+                  <input
+                    type="checkbox"
+                    checked={verification.includes(item)}
+                    onChange={() => toggleVerification(item)}
+                  />
+                  <span>{item}</span>
+                </label>
+              ))}
+            </div>
+          </label>
+          <div className="modal-actions">
+            <button
+              type="button"
+              className="button button-outline"
+              onClick={onClose}
+            >
+              Cancel
+            </button>
+            <button type="submit" className="button button-red">
+              Add to stock <ArrowRight size={15} />
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
-    <button type="submit" className="button button-red">Send invite <ArrowRight size={15} /></button>
-  </form>
-  <div className="team-list">
-    <h3>Team members ({team.length})</h3>
-    <table className="team-table"><thead><tr><th>Name</th><th>Role</th><th>Branch</th><th>Login</th><th></th></tr></thead><tbody>{team.map(member => <tr key={member.id}><td><strong>{member.name}</strong><small>{member.id}</small></td><td>{member.role}</td><td>{member.branch}</td><td>{member.email}</td><td><button className="copy-login" onClick={() => onCopy(member)} aria-label={`Copy ${member.name}'s login`}><Copy size={14} /></button></td></tr>)}</tbody></table>
-  </div>
-  </div></div>;}
+  );
+}
 
-function TeamView({ team, onOpen }: { team: StaffMember[]; onOpen: () => void }) { return <><SectionHeading eyebrow="People & permissions" title="Team members" action="Invite member" onAction={onOpen} /><div className="dealer-panel full-panel"><div className="team-grid">{team.map(member => <div key={member.id} className="team-card"><div className="team-card-top"><span className="profile-avatar">{member.name.split(" ").map(word => word[0]).join("").slice(0, 2)}</span><StatusTag label={member.status ?? "Active"} /></div><h3>{member.name}</h3><p>{member.role} · {member.branch}</p><div><span><small>Sales</small><strong>{member.sales ?? 0}</strong></span><span><small>Avg. reply</small><strong>{member.response ?? "N/A"}</strong></span></div></div>)}</div></div></>; }
+function LeadsView({
+  leads,
+  onToast,
+  onOpen,
+}: {
+  leads: Lead[];
+  onToast: (text: string) => void;
+  onOpen: (lead: Lead) => void;
+}) {
+  return (
+    <>
+      <SectionHeading
+        eyebrow="Customer pipeline"
+        title="Lead inbox"
+        action="Assign lead"
+        onAction={() => onToast("Lead assignment drawer coming next")}
+      />
+      <div className="dealer-panel full-panel">
+        <div className="table-toolbar">
+          <div className="inbox-summary">
+            <strong>4</strong>
+            <span>
+              open conversations
+              <br />
+              <small>Average response time: 11m</small>
+            </span>
+          </div>
+          <button className="filter-chip">
+            <Search size={15} /> Search leads
+          </button>
+        </div>
+        <div className="lead-list">
+          {leads.map(lead => (
+            <div key={lead.id} className="lead-row">
+              <span className="mini-avatar large">{lead.initials}</span>
+              <div className="lead-person">
+                <strong>{lead.name}</strong>
+                <small>
+                  {lead.id} · {lead.time}
+                </small>
+              </div>
+              <div className="lead-vehicle">
+                <span>Interested in</span>
+                <strong>{lead.vehicle}</strong>
+              </div>
+              <span className="source-tag">{lead.source}</span>
+              <StatusTag label={lead.status} />
+              <button
+                className="row-arrow"
+                onClick={() => onOpen(lead)}
+                aria-label={`Open ${lead.name}'s details`}
+              >
+                <ArrowRight size={16} />
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}
 
-function LeadDetailModal({ lead, onClose, onToast }: { lead: Lead; onClose: () => void; onToast: (text: string) => void }) { const whatsapp = `https://wa.me/254700000000?text=${encodeURIComponent(`Hi ${lead.name}, following up on your enquiry for ${lead.vehicle}.`)}`; return <div className="modal-backdrop" onMouseDown={onClose} role="dialog" aria-modal="true" aria-label="Lead details"><div className="modal-card" onMouseDown={e => e.stopPropagation()}><button className="modal-close" onClick={onClose} aria-label="Close"><X size={18} /></button><h2>{lead.name}</h2><p>{lead.id} · {lead.source}</p><div className="detail-grid-2col"><div><label>Vehicle interested in<small>{lead.vehicle}</small></label><label>Status<small><StatusTag label={lead.status} /></small></label></div><div><label>Last contact<small>{lead.time}</small></label><label>Initials<small><span className="mini-avatar">{lead.initials}</span></small></label></div></div><div className="modal-actions"><button type="button" className="button button-outline" onClick={onClose}>Back to leads</button><a href={whatsapp} target="_blank" rel="noreferrer" className="button button-red"><MessageCircle size={15} /> WhatsApp customer</a></div></div></div>; }
+function ReservationsView({
+  reservations,
+  onToast,
+  onOpen,
+}: {
+  reservations: Reservation[];
+  onToast: (text: string) => void;
+  onOpen: (reservation: Reservation) => void;
+}) {
+  return (
+    <>
+      <SectionHeading
+        eyebrow="Holds & handovers"
+        title="Active holds"
+        action="Create hold"
+        onAction={() =>
+          onToast("Reservation creation ready from a vehicle row")
+        }
+      />
+      <div className="reservation-cards">
+        {reservations.map(item => (
+          <div className="reservation-card" key={item.id}>
+            <div className="reservation-card-top">
+              <span>{item.id}</span>
+              <StatusTag label={item.status} />
+            </div>
+            <h3>{item.vehicle}</h3>
+            <p>Buyer: {item.buyer}</p>
+            <div className="reservation-bottom">
+              <span>
+                <small>
+                  {item.status === "Active" ? "Hold expires" : "Status"}
+                </small>
+                <strong>{item.expires}</strong>
+              </span>
+              <span>
+                <small>Deposit</small>
+                <strong>{money(item.amount)}</strong>
+              </span>
+            </div>
+            <button className="text-link" onClick={() => onOpen(item)}>
+              Open details <ArrowRight size={14} />
+            </button>
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
 
-function ReservationDetailModal({ reservation, onClose, onToast }: { reservation: Reservation; onClose: () => void; onToast: (text: string) => void }) { return <div className="modal-backdrop" onMouseDown={onClose} role="dialog" aria-modal="true" aria-label="Reservation details"><div className="modal-card" onMouseDown={e => e.stopPropagation()}><button className="modal-close" onClick={onClose} aria-label="Close"><X size={18} /></button><h2>Reservation {reservation.id}</h2><p>{reservation.buyer}</p><div className="detail-grid-2col"><div><label>Vehicle<small>{reservation.vehicle}</small></label><label>Deposit<small>{money(reservation.amount)}</small></label></div><div><label>Status<small><StatusTag label={reservation.status} /></small></label><label>Expires<small>{reservation.expires}</small></label></div></div><div className="modal-actions"><button type="button" className="button button-outline" onClick={() => { onToast(`Released ${reservation.id}`); onClose(); }}>Release hold</button><button type="button" className="button" onClick={() => { onToast(`Extended ${reservation.id}`); onClose(); }}>Extend 48h</button><button type="button" className="button button-red" onClick={() => { onToast(`Converted ${reservation.id} to sale`); onClose(); }}>Convert to sale</button></div></div></div>; }
+function TradeInsView({
+  tradeIns,
+  onToast,
+  onOpen,
+}: {
+  tradeIns: TradeIn[];
+  onToast: (text: string) => void;
+  onOpen: (tradeIn: TradeIn) => void;
+}) {
+  return (
+    <>
+      <SectionHeading
+        eyebrow="Acquisition"
+        title="Trade-in requests"
+        action="New valuation"
+        onAction={() => onToast("Valuation form ready for a customer enquiry")}
+      />
+      <div className="dealer-panel full-panel">
+        <div className="trade-table">
+          {tradeIns.map(item => (
+            <div key={item.id} className="trade-row">
+              <span className="trade-id">{item.id}</span>
+              <div>
+                <strong>{item.name}</strong>
+                <small>
+                  {item.vehicle} · via {item.source}
+                </small>
+              </div>
+              <strong>{item.estimate}</strong>
+              <StatusTag label={item.status} />
+              <span className="table-updated">{item.time}</span>
+              <button
+                className="row-arrow"
+                onClick={() => onOpen(item)}
+                aria-label={`Review trade-in ${item.id}`}
+              >
+                <ArrowRight size={16} />
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}
 
-function TradeInDetailModal({ tradeIn, onClose, onToast }: { tradeIn: TradeIn; onClose: () => void; onToast: (text: string) => void }) { return <div className="modal-backdrop" onMouseDown={onClose} role="dialog" aria-modal="true" aria-label="Trade-in details"><div className="modal-card" onMouseDown={e => e.stopPropagation()}><button className="modal-close" onClick={onClose} aria-label="Close"><X size={18} /></button><h2>{tradeIn.id}</h2><p>{tradeIn.name}</p><div className="detail-grid-2col"><div><label>Vehicle<small>{tradeIn.vehicle}</small></label><label>Estimate<small>{tradeIn.estimate}</small></label><label>Submitted via<small>{tradeIn.source}</small></label></div><div><label>Status<small><StatusTag label={tradeIn.status} /></small></label><label>When<small>{tradeIn.time}</small></label></div></div><div className="modal-actions"><button type="button" className="button button-outline" onClick={onClose}>Back to trade-ins</button><button type="button" className="button button-red" onClick={() => { onToast(`Approved estimate for ${tradeIn.id}`); onClose(); }}>Approve estimate</button></div></div></div>; }
+function FinanceView({
+  financeRequests,
+  onToast,
+  onOpen,
+}: {
+  financeRequests: FinanceRequest[];
+  onToast: (text: string) => void;
+  onOpen: (finance: FinanceRequest) => void;
+}) {
+  return (
+    <>
+      <SectionHeading
+        eyebrow="Buyer readiness"
+        title="Matched buyers"
+        action="Match a buyer"
+        onAction={() => onToast("Finance matcher ready from a lead")}
+      />
+      <div className="dealer-panel full-panel">
+        <div className="finance-table">
+          {financeRequests.map(item => (
+            <div key={item.id} className="finance-row">
+              <div className="finance-person">
+                <span className="mini-avatar">
+                  {item.name
+                    .split(" ")
+                    .map(word => word[0])
+                    .join("")
+                    .slice(0, 2)}
+                </span>
+                <div>
+                  <strong>{item.name}</strong>
+                  <small>
+                    {item.employment} · {item.time}
+                  </small>
+                </div>
+              </div>
+              <div>
+                <small>Looking at</small>
+                <strong>{item.vehicle}</strong>
+              </div>
+              <div>
+                <small>Monthly budget</small>
+                <strong>{item.budget}</strong>
+              </div>
+              <div>
+                <small>Partner</small>
+                <strong>{item.partner}</strong>
+              </div>
+              <StatusTag label={item.status} />
+              <button
+                className="row-arrow"
+                onClick={() => onOpen(item)}
+                aria-label={`Open finance match ${item.id}`}
+              >
+                <ArrowRight size={16} />
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}
 
-function FinanceDetailModal({ finance, onClose, onToast }: { finance: FinanceRequest; onClose: () => void; onToast: (text: string) => void }) { return <div className="modal-backdrop" onMouseDown={onClose} role="dialog" aria-modal="true" aria-label="Finance match details"><div className="modal-card" onMouseDown={e => e.stopPropagation()}><button className="modal-close" onClick={onClose} aria-label="Close"><X size={18} /></button><h2>{finance.id}</h2><p>{finance.name}</p><div className="detail-grid-2col"><div><label>Employment<small>{finance.employment}</small></label><label>Monthly budget<small>{finance.budget}</small></label><label>Looking at<small>{finance.vehicle}</small></label></div><div><label>Finance partner<small>{finance.partner}</small></label><label>Status<small><StatusTag label={finance.status} /></small></label><label>Last activity<small>{finance.time}</small></label></div></div><div className="modal-actions"><button type="button" className="button button-outline" onClick={onClose}>Back to finance</button><button type="button" className="button button-red" onClick={() => { onToast(`Sent proposal to ${finance.name}`); onClose(); }}>Send proposal</button></div></div></div>; }
+function SalesView() {
+  return (
+    <>
+      <SectionHeading eyebrow="Performance / August 2026" title="Sales pulse" />
+      <div className="sales-kpis">
+        <Metric
+          label="Gross sales"
+          value="KES 18.4M"
+          change="+18.4%"
+          icon={CircleDollarSign}
+          tone="red"
+        />
+        <Metric
+          label="Units moved"
+          value="8"
+          change="+2 vs July"
+          icon={CarFront}
+          tone="blue"
+        />
+        <Metric
+          label="Avg. ticket"
+          value="KES 2.3M"
+          change="+6.1%"
+          icon={Tag}
+          tone="clay"
+        />
+      </div>
+      <div className="dealer-panel full-panel">
+        <div className="panel-heading">
+          <div>
+            <p className="section-kicker">Completed and pending</p>
+            <h3>Latest sales</h3>
+          </div>
+          <span className="muted-label">Updated just now</span>
+        </div>
+        <div className="sales-table">
+          {sales.map(item => (
+            <div className="sales-row" key={item.id}>
+              <span className="trade-id">{item.id}</span>
+              <div>
+                <strong>{item.vehicle}</strong>
+                <small>
+                  {item.buyer} · {item.agent}
+                </small>
+              </div>
+              <strong>{money(item.amount)}</strong>
+              <span>{item.date}</span>
+              <StatusTag label={item.status} />
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}
+
+function SettingsModal({
+  open,
+  onClose,
+  team,
+  newStaff,
+  setNewStaff,
+  onSubmit,
+  onCopy,
+  roleOptions,
+  branchOptions,
+}: {
+  open: boolean;
+  onClose: () => void;
+  team: StaffMember[];
+  newStaff: {
+    name: string;
+    email: string;
+    role: string;
+    branch: string;
+    password: string;
+  };
+  setNewStaff: (v: {
+    name: string;
+    email: string;
+    role: string;
+    branch: string;
+    password: string;
+  }) => void;
+  onSubmit: (e: FormEvent) => void;
+  onCopy: (member: StaffMember) => void;
+  roleOptions: string[];
+  branchOptions: string[];
+}) {
+  const generatePassword = () => {
+    const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+    let pass = "zara";
+    for (let i = 0; i < 6; i++)
+      pass += chars[Math.floor(Math.random() * chars.length)];
+    setNewStaff({ ...newStaff, password: pass });
+  };
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    if (!newStaff.name || !newStaff.email) return;
+    onSubmit(e);
+  };
+  return (
+    <div
+      className="modal-backdrop"
+      onMouseDown={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Workspace settings"
+    >
+      <div className="modal-card wide" onMouseDown={e => e.stopPropagation()}>
+        <button className="modal-close" onClick={onClose} aria-label="Close">
+          <X size={18} />
+        </button>
+        <h2>Workspace settings</h2>
+        <p>
+          Add team members who get their own login to manage sales, stock, and
+          customer follow-ups.
+        </p>
+        <form onSubmit={handleSubmit}>
+          <h3>Invite new staff member</h3>
+          <div className="stock-form-grid">
+            <label htmlFor="staff-name">
+              Full name
+              <input
+                id="staff-name"
+                value={newStaff.name}
+                onChange={e =>
+                  setNewStaff({ ...newStaff, name: e.target.value })
+                }
+                required
+              />
+            </label>
+            <label htmlFor="staff-email">
+              Email
+              <input
+                id="staff-email"
+                type="email"
+                value={newStaff.email}
+                onChange={e =>
+                  setNewStaff({ ...newStaff, email: e.target.value })
+                }
+                required
+              />
+            </label>
+            <label htmlFor="staff-role">
+              Role
+              <select
+                id="staff-role"
+                value={newStaff.role}
+                onChange={e =>
+                  setNewStaff({ ...newStaff, role: e.target.value })
+                }
+              >
+                {roleOptions.map(r => (
+                  <option key={r}>{r}</option>
+                ))}
+              </select>
+            </label>
+            <label htmlFor="staff-branch">
+              Branch
+              <select
+                id="staff-branch"
+                value={newStaff.branch}
+                onChange={e =>
+                  setNewStaff({ ...newStaff, branch: e.target.value })
+                }
+              >
+                {branchOptions.map(b => (
+                  <option key={b}>{b}</option>
+                ))}
+              </select>
+            </label>
+            <label htmlFor="staff-password">
+              Password
+              <button
+                type="button"
+                className="button button-outline compact"
+                onClick={generatePassword}
+              >
+                Generate
+              </button>
+              <input
+                id="staff-password"
+                type="text"
+                value={newStaff.password}
+                onChange={e =>
+                  setNewStaff({ ...newStaff, password: e.target.value })
+                }
+                placeholder="Auto-generated or set manually"
+              />
+            </label>
+          </div>
+          <button type="submit" className="button button-red">
+            Send invite <ArrowRight size={15} />
+          </button>
+        </form>
+        <div className="team-list">
+          <h3>Team members ({team.length})</h3>
+          <table className="team-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Role</th>
+                <th>Branch</th>
+                <th>Login</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {team.map(member => (
+                <tr key={member.id}>
+                  <td>
+                    <strong>{member.name}</strong>
+                    <small>{member.id}</small>
+                  </td>
+                  <td>{member.role}</td>
+                  <td>{member.branch}</td>
+                  <td>{member.email}</td>
+                  <td>
+                    <button
+                      className="copy-login"
+                      onClick={() => onCopy(member)}
+                      aria-label={`Copy ${member.name}'s login`}
+                    >
+                      <Copy size={14} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TeamView({
+  team,
+  onOpen,
+}: {
+  team: StaffMember[];
+  onOpen: () => void;
+}) {
+  return (
+    <>
+      <SectionHeading
+        eyebrow="People & permissions"
+        title="Team members"
+        action="Invite member"
+        onAction={onOpen}
+      />
+      <div className="dealer-panel full-panel">
+        <div className="team-grid">
+          {team.map(member => (
+            <div key={member.id} className="team-card">
+              <div className="team-card-top">
+                <span className="profile-avatar">
+                  {member.name
+                    .split(" ")
+                    .map(word => word[0])
+                    .join("")
+                    .slice(0, 2)}
+                </span>
+                <StatusTag label={member.status ?? "Active"} />
+              </div>
+              <h3>{member.name}</h3>
+              <p>
+                {member.role} · {member.branch}
+              </p>
+              <div>
+                <span>
+                  <small>Sales</small>
+                  <strong>{member.sales ?? 0}</strong>
+                </span>
+                <span>
+                  <small>Avg. reply</small>
+                  <strong>{member.response ?? "N/A"}</strong>
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}
+
+function LeadDetailModal({
+  lead,
+  onClose,
+  onToast,
+}: {
+  lead: Lead;
+  onClose: () => void;
+  onToast: (text: string) => void;
+}) {
+  const whatsapp = `https://wa.me/254700000000?text=${encodeURIComponent(`Hi ${lead.name}, following up on your enquiry for ${lead.vehicle}.`)}`;
+  return (
+    <div
+      className="modal-backdrop"
+      onMouseDown={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Lead details"
+    >
+      <div className="modal-card" onMouseDown={e => e.stopPropagation()}>
+        <button className="modal-close" onClick={onClose} aria-label="Close">
+          <X size={18} />
+        </button>
+        <h2>{lead.name}</h2>
+        <p>
+          {lead.id} · {lead.source}
+        </p>
+        <div className="detail-grid-2col">
+          <div>
+            <label>
+              Vehicle interested in<small>{lead.vehicle}</small>
+            </label>
+            <label>
+              Status
+              <small>
+                <StatusTag label={lead.status} />
+              </small>
+            </label>
+          </div>
+          <div>
+            <label>
+              Last contact<small>{lead.time}</small>
+            </label>
+            <label>
+              Initials
+              <small>
+                <span className="mini-avatar">{lead.initials}</span>
+              </small>
+            </label>
+          </div>
+        </div>
+        <div className="modal-actions">
+          <button
+            type="button"
+            className="button button-outline"
+            onClick={onClose}
+          >
+            Back to leads
+          </button>
+          <a
+            href={whatsapp}
+            target="_blank"
+            rel="noreferrer"
+            className="button button-red"
+          >
+            <MessageCircle size={15} /> WhatsApp customer
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ReservationDetailModal({
+  reservation,
+  onClose,
+  onToast,
+}: {
+  reservation: Reservation;
+  onClose: () => void;
+  onToast: (text: string) => void;
+}) {
+  return (
+    <div
+      className="modal-backdrop"
+      onMouseDown={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Reservation details"
+    >
+      <div className="modal-card" onMouseDown={e => e.stopPropagation()}>
+        <button className="modal-close" onClick={onClose} aria-label="Close">
+          <X size={18} />
+        </button>
+        <h2>Reservation {reservation.id}</h2>
+        <p>{reservation.buyer}</p>
+        <div className="detail-grid-2col">
+          <div>
+            <label>
+              Vehicle<small>{reservation.vehicle}</small>
+            </label>
+            <label>
+              Deposit<small>{money(reservation.amount)}</small>
+            </label>
+          </div>
+          <div>
+            <label>
+              Status
+              <small>
+                <StatusTag label={reservation.status} />
+              </small>
+            </label>
+            <label>
+              Expires<small>{reservation.expires}</small>
+            </label>
+          </div>
+        </div>
+        <div className="modal-actions">
+          <button
+            type="button"
+            className="button button-outline"
+            onClick={() => {
+              onToast(`Released ${reservation.id}`);
+              onClose();
+            }}
+          >
+            Release hold
+          </button>
+          <button
+            type="button"
+            className="button"
+            onClick={() => {
+              onToast(`Extended ${reservation.id}`);
+              onClose();
+            }}
+          >
+            Extend 48h
+          </button>
+          <button
+            type="button"
+            className="button button-red"
+            onClick={() => {
+              onToast(`Converted ${reservation.id} to sale`);
+              onClose();
+            }}
+          >
+            Convert to sale
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TradeInDetailModal({
+  tradeIn,
+  onClose,
+  onToast,
+}: {
+  tradeIn: TradeIn;
+  onClose: () => void;
+  onToast: (text: string) => void;
+}) {
+  return (
+    <div
+      className="modal-backdrop"
+      onMouseDown={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Trade-in details"
+    >
+      <div className="modal-card" onMouseDown={e => e.stopPropagation()}>
+        <button className="modal-close" onClick={onClose} aria-label="Close">
+          <X size={18} />
+        </button>
+        <h2>{tradeIn.id}</h2>
+        <p>{tradeIn.name}</p>
+        <div className="detail-grid-2col">
+          <div>
+            <label>
+              Vehicle<small>{tradeIn.vehicle}</small>
+            </label>
+            <label>
+              Estimate<small>{tradeIn.estimate}</small>
+            </label>
+            <label>
+              Submitted via<small>{tradeIn.source}</small>
+            </label>
+          </div>
+          <div>
+            <label>
+              Status
+              <small>
+                <StatusTag label={tradeIn.status} />
+              </small>
+            </label>
+            <label>
+              When<small>{tradeIn.time}</small>
+            </label>
+          </div>
+        </div>
+        <div className="modal-actions">
+          <button
+            type="button"
+            className="button button-outline"
+            onClick={onClose}
+          >
+            Back to trade-ins
+          </button>
+          <button
+            type="button"
+            className="button button-red"
+            onClick={() => {
+              onToast(`Approved estimate for ${tradeIn.id}`);
+              onClose();
+            }}
+          >
+            Approve estimate
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FinanceDetailModal({
+  finance,
+  onClose,
+  onToast,
+}: {
+  finance: FinanceRequest;
+  onClose: () => void;
+  onToast: (text: string) => void;
+}) {
+  return (
+    <div
+      className="modal-backdrop"
+      onMouseDown={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Finance match details"
+    >
+      <div className="modal-card" onMouseDown={e => e.stopPropagation()}>
+        <button className="modal-close" onClick={onClose} aria-label="Close">
+          <X size={18} />
+        </button>
+        <h2>{finance.id}</h2>
+        <p>{finance.name}</p>
+        <div className="detail-grid-2col">
+          <div>
+            <label>
+              Employment<small>{finance.employment}</small>
+            </label>
+            <label>
+              Monthly budget<small>{finance.budget}</small>
+            </label>
+            <label>
+              Looking at<small>{finance.vehicle}</small>
+            </label>
+          </div>
+          <div>
+            <label>
+              Finance partner<small>{finance.partner}</small>
+            </label>
+            <label>
+              Status
+              <small>
+                <StatusTag label={finance.status} />
+              </small>
+            </label>
+            <label>
+              Last activity<small>{finance.time}</small>
+            </label>
+          </div>
+        </div>
+        <div className="modal-actions">
+          <button
+            type="button"
+            className="button button-outline"
+            onClick={onClose}
+          >
+            Back to finance
+          </button>
+          <button
+            type="button"
+            className="button button-red"
+            onClick={() => {
+              onToast(`Sent proposal to ${finance.name}`);
+              onClose();
+            }}
+          >
+            Send proposal
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
