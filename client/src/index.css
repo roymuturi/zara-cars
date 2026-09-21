@@ -16,9 +16,9 @@
   --saffron: #dcaa62;
   /* Text hierarchy */
   --text: #0a1728;
-  --text-2: var(--text-3);
-  --text-3: #748190;
-  --muted: #667585;
+  --text-2: #1b2d45;
+  --text-3: #2d3e52;
+  --muted: #4a5d73;
   /* Surfaces */
   --surface-solid: var(--ink);
   --paper: #edf3f6;
@@ -7391,9 +7391,11 @@ img {
 }
 .hero-kinetic-lockup {
   margin: 14px 0 22px;
-  font-size: clamp(4.2rem, 7.2vw, 7rem);
+  font-family: "EB Garamond", "Garamond", Georgia, serif;
+  font-size: clamp(4.4rem, 7.6vw, 7.4rem);
   line-height: 0.78;
   letter-spacing: -0.045em;
+  color: #ffffff;
 }
 .hero-kinetic-lockup span:nth-child(2) {
   padding-left: 0.16em;
