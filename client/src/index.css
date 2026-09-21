@@ -4868,7 +4868,7 @@ img {
 }
 .frame-dark .desktop-nav,
 .frame-dark .header-phone {
-  color: rgba(255, 255, 255, 0.72);
+  color: rgba(255, 255, 255, 0.9);
 }
 .frame-dark .desktop-nav a:hover,
 .frame-dark .desktop-nav .dealer-link,
@@ -8107,7 +8107,7 @@ img {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.11);
 }
 .frame-dark .site-header .desktop-nav a {
-  color: rgba(255, 255, 255, 0.74);
+  color: rgba(255, 255, 255, 0.9);
 }
 
 /* Dark header (toggled dark mode) stays frosted without the line. */
