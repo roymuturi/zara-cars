@@ -440,6 +440,7 @@ img {
   white-space: nowrap;
   border: 1px solid var(--line);
   background: var(--surface);
+  color: var(--text-2);
 }
 .trust-badge.gold {
   background: rgba(201, 162, 75, 0.12);
@@ -5294,7 +5295,7 @@ img {
 .original-vehicle-grid .vehicle-card {
   border-color: #e0e6ec;
   border-radius: 16px;
-  background: #fff;
+  background: #f7f3ec;
   box-shadow: 0 9px 22px rgba(11, 31, 58, 0.05);
 }
 .original-vehicle-grid .vehicle-card:hover {
