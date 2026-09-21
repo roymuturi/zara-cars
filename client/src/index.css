@@ -5261,7 +5261,7 @@ img {
 }
 .original-stat-strip small {
   margin-top: 4px;
-  color: #768492;
+  color: var(--text-2);
   font-size: 13px;
   font-weight: 800;
   line-height: 1.4;
@@ -6189,7 +6189,7 @@ img {
 .page-content {
   background: linear-gradient(
     180deg,
-    rgba(255, 255, 255, 0.05),
+    rgba(247, 243, 236, 0.5),
     rgba(225, 235, 245, 0.08)
   );
 }
